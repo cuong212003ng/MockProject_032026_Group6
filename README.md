@@ -76,24 +76,25 @@ Hiểu nhanh flow code
      - Viết đủ các case chính: success, not found, validate lỗi input, lỗi server.  
      - Test lại nhanh sau mỗi lần sửa
 
-Mọi người lưu ý khi commit thì nhớ note thêm các mô tả:
-  feat: thêm chức năng mới
-    Ví dụ: feat: add list students endpoint
-  fix: sửa bug
-    Ví dụ: fix: validate missing student name
-  refactor: chỉnh code (cấu trúc, tách hàm) không đổi behavior
-    Ví dụ: refactor: extract student service
-  docs: sửa / thêm tài liệu, README
-    Ví dụ: docs: update student API usage
-  style: chỉnh format, spacing, rename biến nhỏ, không ảnh hưởng logic
-    Ví dụ: style: rename studentId to id
-  test: thêm / sửa test
-    Ví dụ: test: add student service tests
-  chore: việc lặt vặt, không ảnh hưởng code chạy (config, script, bump version)
-    Ví dụ: chore: update nodemon config
-  build: thay đổi liên quan build, dependencies
-    Ví dụ: build: add express dependency
-  ci: thay đổi file CI (GitHub Actions, GitLab CI, …)
-    Ví dụ: ci: add node 20 to pipeline
-  revert: đảo ngược một commit trước đó
-    Ví dụ: revert: "feat: add delete student" 
+Quy ước message khi commit
+
+- `feat`: thêm **chức năng mới**  
+  - Ví dụ: `feat: add list students endpoint`
+- `fix`: **sửa bug**  
+  - Ví dụ: `fix: validate missing student name`
+- `refactor`: chỉnh **cấu trúc / tách hàm** nhưng **không đổi behavior**  
+  - Ví dụ: `refactor: extract student service`
+- `docs`: sửa / thêm **tài liệu, README**  
+  - Ví dụ: `docs: update student API usage`
+- `style`: chỉnh **format, spacing, rename biến nhỏ**, không ảnh hưởng logic  
+  - Ví dụ: `style: rename studentId to id`
+- `test`: thêm / sửa **test**  
+  - Ví dụ: `test: add student service tests`
+- `chore`: các việc lặt vặt, **không ảnh hưởng code chạy** (config, script, bump version, …)  
+  - Ví dụ: `chore: update nodemon config`
+- `build`: thay đổi liên quan **build, dependencies**  
+  - Ví dụ: `build: add express dependency`
+- `ci`: thay đổi file **CI** (GitHub Actions, GitLab CI, …)  
+  - Ví dụ: `ci: add node 20 to pipeline`
+- `revert`: **đảo ngược** một commit trước đó  
+  - Ví dụ: `revert: "feat: add delete student"`
