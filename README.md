@@ -4,6 +4,11 @@ Quy trình làm việc (GIT)
    - `git checkout main`  
    - `git pull origin main`
 
+1.1. Cấu hình thông tin Git (làm 1 lần trên máy)  
+   - `git config --global user.name "Họ Tên"`  
+   - `git config --global user.email "email@example.com"`  
+   → Để khi push/PR nhìn vào commit sẽ biết ai là người thực hiện.
+
 2. Tạo branch theo task  
    - `git checkout -b feature/<ten-task>`
 
