@@ -1,0 +1,26 @@
+# Thư mục phụ thuộc
+node_modules/
+
+# File log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Môi trường / cấu hình nhạy cảm
+.env
+.env.local
+.env.*.local
+
+# File hệ thống
+.DS_Store
+Thumbs.db
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+# Tạm thời
+*.tmp
+*.swp
