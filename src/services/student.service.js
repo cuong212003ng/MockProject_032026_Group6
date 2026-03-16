@@ -1,4 +1,4 @@
-const studentModel = require('../models/student.model');
+const studentModel = require("../models/student.model");
 
 // Tầng service cho nghiệp vụ Sinh viên.
 // Hiện tại, tất cả các hàm chỉ là bản mẫu (stub)
@@ -36,6 +36,7 @@ async function updateStudent(id, data) {
 
 async function deleteStudent(id) {
   // Xóa một sinh viên theo id
+
   // Gọi xuống tầng model để xóa trong DB: studentModel.remove(id)
   const deleted = await studentModel.remove(id);
   return deleted;
@@ -47,4 +48,5 @@ module.exports = {
   createStudent,
   updateStudent,
   deleteStudent,
+  getStudentById,
 };

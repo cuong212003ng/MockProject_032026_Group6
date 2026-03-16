@@ -3,15 +3,11 @@
 // Các thành viên khác trong nhóm sẽ hiện thực (implement) các hàm này sau
 // để làm việc với cơ sở dữ liệu thật (ví dụ: MySQL, MongoDB, PostgreSQL, ...).
 
-const { sql, query } = require('../config/db');
+const { sql, query } = require("../../config/db");
 
-const GET_ALL_STUDENTS_QUERY = `
-  SELECT * FROM students
-`;
+const GET_ALL_STUDENTS_QUERY = `SELECT * FROM students`;
 
-const GET_STUDENT_BY_ID_QUERY = `
-  SELECT * FROM students WHERE id = @id
-`;
+const GET_STUDENT_BY_ID_QUERY = `SELECT * FROM students WHERE id = @id`;
 
 async function findAll() {
   const result = await query(GET_ALL_STUDENTS_QUERY);
@@ -21,21 +17,33 @@ async function findAll() {
 async function findById(id) {
   const parsedId = Number.parseInt(id, 10);
   const result = await query(GET_STUDENT_BY_ID_QUERY, [
-    { name: 'id', type: sql.Int, value: parsedId },
+    { name: "id", type: sql.Int, value: parsedId },
   ]);
   return result.recordset[0];
 }
 
 async function create(data) {
-  throw new Error('StudentModel.create is not implemented yet');
+  throw new Error("StudentModel.create is not implemented yet");
 }
 
 async function update(id, data) {
-  throw new Error('StudentModel.update is not implemented yet');
+  throw new Error("StudentModel.update is not implemented yet");
 }
 
 async function remove(id) {
-  throw new Error('StudentModel.remove is not implemented yet');
+  const students = await findAll();
+
+  // Chuyển id sang kiểu số nguyên (đề phòng ID từ API gửi xuống là chuỗi '1')
+  const studentId = parseInt(id, 10);
+
+  const index = students.findIndex((s) => s.id === studentId);
+
+  if (index !== -1) {
+    // Dùng hàm splice để xóa 1 phần tử tại vị trí index
+    students.splice(index, 1);
+    return true;
+  }
+  return false;
 }
 
 module.exports = {
@@ -45,4 +53,3 @@ module.exports = {
   update,
   remove,
 };
-

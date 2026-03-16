@@ -1,5 +1,5 @@
-const express = require('express');
-const studentController = require('../controllers/student.controller');
+const express = require("express");
+const studentController = require("../controllers/student.controller");
 
 const router = express.Router();
 
@@ -7,9 +7,13 @@ const router = express.Router();
 // Các member sẽ triển khai logic thật cho từng action trong controller/service/model.
 
 // Danh sách sinh viên
-router.get('/', studentController.getAllStudents);
+router.get("/", studentController.getAllStudents);
 
 // Sinh viên cụ thể
-router.get('/:id', studentController.getStudentById);
+router.get("/:id", studentController.getStudentById);
+
+module.exports = router;
+// delete student
+router.delete("/:id", studentController.deleteStudent);
 
 module.exports = router;
