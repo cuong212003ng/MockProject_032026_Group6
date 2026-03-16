@@ -3,15 +3,27 @@
 // Các thành viên khác trong nhóm sẽ hiện thực (implement) các hàm này sau
 // để làm việc với cơ sở dữ liệu thật (ví dụ: MySQL, MongoDB, PostgreSQL, ...).
 
+const { sql, query } = require('../config/db');
+
+const GET_ALL_STUDENTS_QUERY = `
+  SELECT * FROM students
+`;
+
+const GET_STUDENT_BY_ID_QUERY = `
+  SELECT * FROM students WHERE id = @id
+`;
+
 async function findAll() {
-  return [
-    { id: 1, name: 'Nguyen Van A' },
-    { id: 2, name: 'Tran Thi B' },
-  ];
+  const result = await query(GET_ALL_STUDENTS_QUERY);
+  return result.recordset;
 }
 
 async function findById(id) {
-  throw new Error('StudentModel.findById is not implemented yet');
+  const parsedId = Number.parseInt(id, 10);
+  const result = await query(GET_STUDENT_BY_ID_QUERY, [
+    { name: 'id', type: sql.Int, value: parsedId },
+  ]);
+  return result.recordset[0];
 }
 
 async function create(data) {

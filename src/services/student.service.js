@@ -12,6 +12,11 @@ async function getAllStudents() {
   return students;
 }
 
+async function getStudentById(id) {
+  const student = await studentModel.findById(id);
+  return student;
+}
+
 async function createStudent(data) {
   // Tạo mới một sinh viên
   // data: dữ liệu sinh viên nhận từ controller (req.body)
@@ -38,6 +43,7 @@ async function deleteStudent(id) {
 
 module.exports = {
   getAllStudents,
+  getStudentById,
   createStudent,
   updateStudent,
   deleteStudent,
