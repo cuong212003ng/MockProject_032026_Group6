@@ -17,7 +17,12 @@ async function getAllStudents(req, res, next) {
 async function getStudentById(req, res, next) {
   try {
     const { id } = req.params;
-    const student = await studentService.getStudentById(id);
+    const parsedId = Number.parseInt(id, 10);
+    if (Number.isNaN(parsedId)) {
+      return res.status(400).json({ message: 'Invalid id. id must be an integer.' });
+    }
+
+    const student = await studentService.getStudentById(parsedId);
     res.json(student);
   } catch (err) {
     next(err);

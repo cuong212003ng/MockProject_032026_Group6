@@ -3,7 +3,7 @@
 // Các thành viên khác trong nhóm sẽ hiện thực (implement) các hàm này sau
 // để làm việc với cơ sở dữ liệu thật (ví dụ: MySQL, MongoDB, PostgreSQL, ...).
 
-const { query } = require('../config/db');
+const { sql, query } = require('../config/db');
 
 const GET_ALL_STUDENTS_QUERY = `
   SELECT * FROM students
@@ -19,7 +19,10 @@ async function findAll() {
 }
 
 async function findById(id) {
-  const result = await query(GET_STUDENT_BY_ID_QUERY, { id });
+  const parsedId = Number.parseInt(id, 10);
+  const result = await query(GET_STUDENT_BY_ID_QUERY, [
+    { name: 'id', type: sql.Int, value: parsedId },
+  ]);
   return result.recordset[0];
 }
 
