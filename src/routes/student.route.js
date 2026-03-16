@@ -12,4 +12,7 @@ router.get('/', studentController.getAllStudents);
 // Sinh viên cụ thể
 router.get('/:id', studentController.getStudentById);
 
+// Cập nhật sinh viên
+router.put('/:id', studentController.updateStudent);
+
 module.exports = router;

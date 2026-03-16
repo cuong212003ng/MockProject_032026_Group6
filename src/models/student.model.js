@@ -31,7 +31,25 @@ async function create(data) {
 }
 
 async function update(id, data) {
-  throw new Error('StudentModel.update is not implemented yet');
+  const parsedId = Number.parseInt(id, 10);
+  const { full_name, class_name, major } = data;
+
+  const UPDATE_STUDENT_QUERY = `
+    UPDATE students 
+    SET full_name = @full_name, 
+        class_name = @class_name, 
+        major = @major 
+    WHERE id = @id
+  `;
+
+  const result = await query(UPDATE_STUDENT_QUERY, [
+    { name: 'id', type: sql.Int, value: parsedId },
+    { name: 'full_name', type: sql.NVarChar, value: full_name },
+    { name: 'class_name', type: sql.NVarChar, value: class_name },
+    { name: 'major', type: sql.NVarChar, value: major },
+  ]);
+
+  return result.rowsAffected[0] > 0;
 }
 
 async function remove(id) {
