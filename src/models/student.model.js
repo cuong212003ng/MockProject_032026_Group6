@@ -5,13 +5,17 @@
 
 async function findAll() {
   return [
-    { id: 1, name: 'Nguyen Van A' },
-    { id: 2, name: 'Tran Thi B' },
+    { id: 1, name: 'Nguyen Van A', major: 'IT' },
+    { id: 2, name: 'Tran Thi B', major: 'Math' },
+    { id: 3, name: 'Le Van C', major: 'Physics' },
   ];
 }
 
 async function findById(id) {
-  throw new Error('StudentModel.findById is not implemented yet');
+  const students = await findAll();
+  const numericId = Number(id);
+  const student = students.find((s) => s.id === numericId);
+  return student || null;
 }
 
 async function create(data) {

@@ -6,57 +6,25 @@ const studentService = require('../services/student.service');
 
 async function getAllStudents(req, res, next) {
   try {
-    await studentService.getAllStudents();
+    const students = await studentService.getAllStudents();
 
-    return res.status(501).json({
-      message: 'GET /api/students - Chức năng lấy danh sách sinh viên chưa được triển khai.',
-    });
+    res.json(students);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
-async function createStudent(req, res, next) {
-  try {
-    await studentService.createStudent(req.body);
-
-    return res.status(501).json({
-      message: 'POST /api/students - Chức năng thêm mới sinh viên chưa được triển khai.',
-    });
-  } catch (err) {
-    return next(err);
-  }
-}
-
-async function updateStudent(req, res, next) {
+async function getStudentById(req, res, next) {
   try {
     const { id } = req.params;
-    await studentService.updateStudent(id, req.body);
-
-    return res.status(501).json({
-      message: 'PUT /api/students/:id - Chức năng cập nhật sinh viên chưa được triển khai.',
-    });
+    const student = await studentService.getStudentById(id);
+    res.json(student);
   } catch (err) {
-    return next(err);
-  }
-}
-
-async function deleteStudent(req, res, next) {
-  try {
-    const { id } = req.params;
-    await studentService.deleteStudent(id);
-
-    return res.status(501).json({
-      message: 'DELETE /api/students/:id - Chức năng xóa sinh viên chưa được triển khai.',
-    });
-  } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
 module.exports = {
   getAllStudents,
-  createStudent,
-  updateStudent,
-  deleteStudent,
-};
+  getStudentById
+}

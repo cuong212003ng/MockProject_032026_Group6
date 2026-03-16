@@ -9,4 +9,7 @@ const router = express.Router();
 // Danh sách sinh viên
 router.get('/', studentController.getAllStudents);
 
+// Sinh viên cụ thể
+router.get('/:id', studentController.getStudentById);
+
 module.exports = router;
