@@ -13,6 +13,12 @@ const GET_STUDENT_BY_ID_QUERY = `
   SELECT * FROM students WHERE id = @id
 `;
 
+const CREATE_STUDENT_QUERY = `
+  INSERT INTO students (full_name, class_name, major)
+  OUTPUT INSERTED.*
+  VALUES (@full_name, @class_name, @major)
+`;
+
 async function findAll() {
   const result = await query(GET_ALL_STUDENTS_QUERY);
   return result.recordset;
@@ -27,7 +33,13 @@ async function findById(id) {
 }
 
 async function create(data) {
-  throw new Error('StudentModel.create is not implemented yet');
+  const { full_name, class_name, major } = data;
+  const result = await query(CREATE_STUDENT_QUERY, [
+    { name: 'full_name', type: sql.NVarChar, value: full_name },
+    { name: 'class_name', type: sql.NVarChar, value: class_name },
+    { name: 'major', type: sql.NVarChar, value: major },
+  ]);
+  return result.recordset[0];
 }
 
 async function update(id, data) {

@@ -14,5 +14,7 @@ router.get('/:id', studentController.getStudentById);
 
 // Cập nhật sinh viên
 router.put('/:id', studentController.updateStudent);
+// Thêm mới sinh viên
+router.post('/', studentController.createStudent);
 
 module.exports = router;

@@ -53,8 +53,22 @@ async function updateStudent(req, res, next) {
   }
 }
 
+async function createStudent(req, res, next) {
+  try {
+    const student = await studentService.createStudent(req.body);
+
+    return res.status(201).json({
+      message: 'Thêm mới sinh viên thành công!',
+      data: student
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   getAllStudents,
   getStudentById,
-  updateStudent
+  updateStudent,
+  createStudent
 }
