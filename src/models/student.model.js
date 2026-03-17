@@ -65,7 +65,14 @@ async function update(id, data) {
 }
 
 async function remove(id) {
-  throw new Error('StudentModel.remove is not implemented yet');
+  const parsedId = Number.parseInt(id, 10);
+  const DELETE_STUDENT_QUERY = `
+    DELETE FROM students WHERE id = @id
+  `;
+  const result = await query(DELETE_STUDENT_QUERY, [
+    { name: 'id', type: sql.Int, value: parsedId },
+  ]);
+  return result.rowsAffected[0] > 0;
 }
 
 module.exports = {

@@ -1,16 +1,15 @@
-const sql = require('mssql');
+const sql = require("mssql");
 
 const config = {
-    user: "sa",
-    password: "123456",
-    server: "localhost",
-    port: 1433,
-    database: "StudentManagement",
-    options: {
-        encrypt: false,
-        trustServerCertificate: true,
-        instanceName: "SQLEXPRESS19"
-    },
+  user: "sa",
+  password: "123456",
+  server: "localhost",
+  port: 1433,
+  database: "StudentManagement",
+  options: {
+    encrypt: false,
+    trustServerCertificate: true,
+  },
 };
 
 const pool = new sql.ConnectionPool(config);

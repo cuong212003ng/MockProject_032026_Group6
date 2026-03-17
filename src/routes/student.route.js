@@ -16,5 +16,7 @@ router.get('/:id', studentController.getStudentById);
 router.put('/:id', studentController.updateStudent);
 // Thêm mới sinh viên
 router.post('/', studentController.createStudent);
+// Xóa sinh viên
+router.delete('/:id', studentController.deleteStudent);
 
-module.exports = router;
+module.exports = router;
