@@ -12,4 +12,7 @@ router.get('/', studentController.getAllStudents);
 // Sinh viên cụ thể
 router.get('/:id', studentController.getStudentById);
 
+// Thêm mới sinh viên
+router.post('/', studentController.createStudent);
+
 module.exports = router;
