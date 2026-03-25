@@ -1,4 +1,5 @@
 const express = require('express');
+<<<<<<< HEAD
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const { env, assertRequiredEnv } = require('./config/env');
@@ -63,5 +64,34 @@ if (require.main === module) {
     process.exit(1);
   });
 }
+=======
+require('dotenv').config();
+
+const jobRoute = require('./routes/job.route');
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/v1/scheduling', jobRoute);
+
+app.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Scheduling Service is running', data: null });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found', data: null });
+});
+
+app.use((err, req, res, next) => {
+  console.error('[GlobalError]', err.message);
+  res.status(500).json({ success: false, message: 'Internal Server Error', data: null });
+});
+app.listen(PORT, () => {
+  console.log(`Scheduling Service running on port ${PORT}`);
+});
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
 
 module.exports = app;

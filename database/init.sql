@@ -6,13 +6,18 @@
 USE master;
 GO
 
+<<<<<<< HEAD
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'notarial_db')
     CREATE DATABASE notarial_db;
+=======
+CREATE DATABASE notarial_db;
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
 GO
 
 USE notarial_db;
 GO
 
+<<<<<<< HEAD
 -- ── 0a. States ──
 IF OBJECT_ID ('States', 'U') IS NULL
 BEGIN
@@ -35,10 +40,13 @@ CREATE TABLE Languages (
 END
 GO
 
+=======
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
 -- ── 1. notaries ──
 IF OBJECT_ID ('notaries', 'U') IS NULL
 BEGIN
 CREATE TABLE notaries (
+<<<<<<< HEAD
     id                  INT PRIMARY KEY IDENTITY (1, 1),
     user_id             INT           NOT NULL,
     ssn                 VARCHAR(20)   NULL,
@@ -52,6 +60,21 @@ CREATE TABLE notaries (
     internal_notes      NVARCHAR(MAX) NULL,
     status              NVARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',  -- ACTIVE, INACTIVE, BLOCKED
     residential_address NVARCHAR(500) NULL
+=======
+    id INT PRIMARY KEY IDENTITY (1, 1),
+    user_id INT NOT NULL,
+    ssn VARCHAR(20) NULL,
+    full_name NVARCHAR (100) NOT NULL,
+    date_of_birth DATE NULL,
+    photo_url VARCHAR(255) NULL,
+    phone VARCHAR(20) NULL,
+    email VARCHAR(100) NULL,
+    employment_type VARCHAR(30) NULL,
+    start_date DATE NULL,
+    internal_notes NVARCHAR (500) NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    residential_address NVARCHAR (255) NULL
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
 );
 
 END
@@ -89,14 +112,22 @@ END
 IF OBJECT_ID ('notary_service_areas', 'U') IS NULL
 BEGIN
 CREATE TABLE notary_service_areas (
+<<<<<<< HEAD
     id          INT PRIMARY KEY IDENTITY (1, 1),
     notary_id   INT NOT NULL REFERENCES notaries (id),
     state_id    INT NOT NULL REFERENCES States (id),
     county_name NVARCHAR(100) NULL   -- NULL nếu phục vụ cả bang
+=======
+    id INT PRIMARY KEY IDENTITY (1, 1),
+    state_id INT NULL,
+    county_name NVARCHAR (100) NULL,
+    notary_id INT NOT NULL REFERENCES notaries (id)
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
 );
 
 END
 
+<<<<<<< HEAD
 -- ── 4a. notary_languages ──
 IF OBJECT_ID ('notary_languages', 'U') IS NULL
 BEGIN
@@ -117,6 +148,8 @@ CREATE TABLE notary_blackout_dates (
 );
 END
 
+=======
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
 -- ── 5. Job ──
 IF OBJECT_ID ('Job', 'U') IS NULL
 BEGIN
@@ -203,6 +236,7 @@ CREATE INDEX IX_Notifications_JobId ON notifications (job_id);
 
 END
 
+<<<<<<< HEAD
 -- ── 10. Notary_commissions ──
 IF OBJECT_ID ('Notary_commissions', 'U') IS NULL
 BEGIN
@@ -415,6 +449,8 @@ INSERT INTO Languages (id, lang_code, lang_name) VALUES
 SET IDENTITY_INSERT Languages OFF;
 END
 
+=======
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
 -- ── Seed: notaries ──
 IF NOT EXISTS (
     SELECT 1

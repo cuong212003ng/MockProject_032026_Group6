@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+<<<<<<< HEAD
 const { env } = require('../config/env');
 const notaryModel = require('../models/notary.model');
 const { sendError } = require('../utils/response.helper');
@@ -8,11 +9,24 @@ const authenticate = (req, res, next) => {
   const [scheme, token] = authHeader.split(' ');
 
   if (scheme !== 'Bearer' || !token) {
+=======
+const { sendError } = require('../utils/response.helper');
+
+const authenticate = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
     return sendError(res, 'Access token is required', 401);
   }
 
   try {
+<<<<<<< HEAD
     const decoded = jwt.verify(token, env.jwtSecret);
+=======
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
     req.user = decoded;
     next();
   } catch (error) {
@@ -20,6 +34,7 @@ const authenticate = (req, res, next) => {
   }
 };
 
+<<<<<<< HEAD
 const authorize =
   (...roles) =>
   (req, res, next) => {
@@ -65,3 +80,6 @@ module.exports = {
   authorize,
   authorizeNotaryOwnerOrAdmin,
 };
+=======
+module.exports = { authenticate };
+>>>>>>> 5dc67de (initial: setup project with proper gitignore)
