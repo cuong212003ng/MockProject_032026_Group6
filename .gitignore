@@ -11,7 +11,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 logs/
+<<<<<<< HEAD
 *.log
 
 # Uploaded files
 uploads/
+=======
+*.log
+>>>>>>> 4795dd5 (fix: gitignore)
