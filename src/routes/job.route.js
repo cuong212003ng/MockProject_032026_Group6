@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const jobController = require('../controllers/job.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
 
 // router.use(authenticate); // TODO: bật lại khi deploy
 

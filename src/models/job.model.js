@@ -1,4 +1,4 @@
-const { query, sql } = require('../config/db');
+const { query } = require('../config/db');
 
 // ─── 1. Lấy danh sách Job ───
 const findAll = async (filters) => {
@@ -104,9 +104,6 @@ const findAvailableNotaries = async (jobId, limit, offset) => {
 
 // ─── 4. Assign Job cho Notary ───
 const assignJob = async (jobId, notaryId, assignedAt) => {
-  const pool = await require('../config/db').query('SELECT 1');
-  const { sql: mssql } = require('../config/db');
-
   const assignResult = await query(
     `INSERT INTO [job assignments] (job_id, notary_id, assigned_at, accepted_at)
      OUTPUT INSERTED.id, INSERTED.job_id, INSERTED.notary_id, INSERTED.assigned_at, INSERTED.accepted_at
@@ -115,7 +112,7 @@ const assignJob = async (jobId, notaryId, assignedAt) => {
   );
 
   await query(
-    `UPDATE Job SET Status = 'Assigned' WHERE id = @jobId`,
+    'UPDATE Job SET Status = \'Assigned\' WHERE id = @jobId',
     { jobId }
   );
 
@@ -143,7 +140,7 @@ const acceptAssignment = async (assignmentId) => {
 // ─── 6. Cập nhật trạng thái Job ───
 const updateStatus = async (jobId, status) => {
   await query(
-    `UPDATE Job SET Status = @status WHERE id = @jobId`,
+    'UPDATE Job SET Status = @status WHERE id = @jobId',
     { jobId, status }
   );
 
@@ -154,7 +151,7 @@ const updateStatus = async (jobId, status) => {
   );
 
   const result = await query(
-    `SELECT Status FROM Job WHERE id = @jobId`,
+    'SELECT Status FROM Job WHERE id = @jobId',
     { jobId }
   );
   return result.recordset[0] || null;

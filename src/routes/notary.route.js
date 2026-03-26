@@ -1,9 +1,30 @@
 const express = require('express');
 const router = express.Router();
 const notaryController = require('../controllers/notary.controller');
-const { authenticate } = require('../middlewares/auth.middleware');
+const {
+  authenticate,
+  authorize,
+  authorizeNotaryOwnerOrAdmin,
+} = require('../middlewares/auth.middleware');
+const { attachAuditContext } = require('../middlewares/audit-context.middleware');
+const { uploadDocumentFile } = require('../middlewares/upload.middleware');
+const {
+  normalizeDocumentUploadPayload,
+  validateNotaryIdParam,
+  validateDocumentListQuery,
+  validateDocumentUpload,
+  validateDocumentVerification,
+  validateAuditLogQuery,
+  validateIncidentListQuery,
+  validateIncidentCreate,
+  validateBioUpdate,
+  validateToggleStatus,
+} = require('../middlewares/validate.middleware');
 
 // router.use(authenticate); // TODO: bật lại khi deploy
+
+router.use(authenticate);
+router.use(attachAuditContext);
 
 /**
  * @swagger
@@ -54,7 +75,7 @@ const { authenticate } = require('../middlewares/auth.middleware');
  *       401:
  *         description: Unauthorized
  */
-router.get('/', notaryController.getNotaryList);
+router.get('/', authorize('ADMIN'), notaryController.getNotaryList);
 
 /**
  * @swagger
@@ -105,7 +126,7 @@ router.get('/', notaryController.getNotaryList);
  *       400:
  *         description: Bad request
  */
-router.post('/', notaryController.createNotary);
+router.post('/', authorize('ADMIN'), notaryController.createNotary);
 
 /**
  * @swagger
@@ -127,7 +148,7 @@ router.post('/', notaryController.createNotary);
  *       404:
  *         description: Not found
  */
-router.get('/:id', notaryController.getNotaryById);
+router.get('/:id', authorize('ADMIN'), validateNotaryIdParam, notaryController.getNotaryById);
 
 /**
  * @swagger
@@ -163,7 +184,7 @@ router.get('/:id', notaryController.getNotaryById);
  *       200:
  *         description: Bio updated
  */
-router.patch('/:id/bio', notaryController.updateBio);
+router.patch('/:id/bio', authorize('ADMIN'), validateBioUpdate, notaryController.updateBio);
 
 /**
  * @swagger
@@ -194,7 +215,7 @@ router.patch('/:id/bio', notaryController.updateBio);
  *       200:
  *         description: Status toggled
  */
-router.patch('/:id/status', notaryController.toggleStatus);
+router.patch('/:id/status', authorize('ADMIN'), validateToggleStatus, notaryController.toggleStatus);
 
 /**
  * @swagger
@@ -214,7 +235,7 @@ router.patch('/:id/status', notaryController.toggleStatus);
  *       200:
  *         description: KPI overview data
  */
-router.get('/:id/overview', notaryController.getOverview);
+router.get('/:id/overview', authorize('ADMIN'), validateNotaryIdParam, notaryController.getOverview);
 
 /**
  * @swagger
@@ -234,7 +255,7 @@ router.get('/:id/overview', notaryController.getOverview);
  *       200:
  *         description: Status history list
  */
-router.get('/:id/status-history', notaryController.getStatusHistory);
+router.get('/:id/status-history', authorize('ADMIN'), validateNotaryIdParam, notaryController.getStatusHistory);
 
 // ── Legal / Commissions ───────────────────────────────────────────────────────
 
@@ -256,7 +277,7 @@ router.get('/:id/status-history', notaryController.getStatusHistory);
  *       200:
  *         description: Commission list with risk_status (VALID | EXPIRING_SOON | EXPIRED)
  */
-router.get('/:id/commissions', notaryController.getCommissions);
+router.get('/:id/commissions', authorize('ADMIN'), validateNotaryIdParam, notaryController.getCommissions);
 
 /**
  * @swagger
@@ -306,7 +327,7 @@ router.get('/:id/commissions', notaryController.getCommissions);
  *       201:
  *         description: Commission created
  */
-router.post('/:id/commissions', notaryController.createCommission);
+router.post('/:id/commissions', authorize('ADMIN'), validateNotaryIdParam, notaryController.createCommission);
 
 /**
  * @swagger
@@ -354,7 +375,7 @@ router.post('/:id/commissions', notaryController.createCommission);
  *       200:
  *         description: Commission updated
  */
-router.patch('/:id/commissions/:cid', notaryController.updateCommission);
+router.patch('/:id/commissions/:cid', authorize('ADMIN'), validateNotaryIdParam, notaryController.updateCommission);
 
 // ── Compliance (Bond & Insurance) ────────────────────────────────────────────
 
@@ -376,7 +397,7 @@ router.patch('/:id/commissions/:cid', notaryController.updateCommission);
  *       200:
  *         description: Bond and insurance details with risk_status
  */
-router.get('/:id/compliance', notaryController.getCompliance);
+router.get('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryController.getCompliance);
 
 /**
  * @swagger
@@ -425,7 +446,7 @@ router.get('/:id/compliance', notaryController.getCompliance);
  *       200:
  *         description: Compliance updated
  */
-router.put('/:id/compliance', notaryController.updateCompliance);
+router.put('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryController.updateCompliance);
 
 // ── Capabilities ─────────────────────────────────────────────────────────────
 
@@ -447,7 +468,7 @@ router.put('/:id/compliance', notaryController.updateCompliance);
  *       200:
  *         description: Capabilities and RON technology info
  */
-router.get('/:id/capabilities', notaryController.getCapabilities);
+router.get('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, notaryController.getCapabilities);
 
 /**
  * @swagger
@@ -498,7 +519,7 @@ router.get('/:id/capabilities', notaryController.getCapabilities);
  *       200:
  *         description: Capabilities updated
  */
-router.patch('/:id/capabilities', notaryController.updateCapabilities);
+router.patch('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, notaryController.updateCapabilities);
 
 // ── Schedule / Availability ───────────────────────────────────────────────────
 
@@ -520,7 +541,7 @@ router.patch('/:id/capabilities', notaryController.updateCapabilities);
  *       200:
  *         description: Availability record
  */
-router.get('/:id/availability', notaryController.getAvailability);
+router.get('/:id/availability', authorize('ADMIN'), validateNotaryIdParam, notaryController.getAvailability);
 
 /**
  * @swagger
@@ -557,7 +578,7 @@ router.get('/:id/availability', notaryController.getAvailability);
  *       200:
  *         description: Availability set
  */
-router.post('/:id/availability', notaryController.setAvailability);
+router.post('/:id/availability', authorize('ADMIN'), validateNotaryIdParam, notaryController.setAvailability);
 
 // ── Documents ────────────────────────────────────────────────────────────────
 
@@ -585,11 +606,37 @@ router.post('/:id/availability', notaryController.setAvailability);
  *         schema:
  *           type: string
  *           enum: [PENDING, APPROVED, REJECTED]
+ *       - in: query
+ *         name: from_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: to_date
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
  *     responses:
  *       200:
- *         description: Document list
+ *         description: Paginated document list
  */
-router.get('/:id/documents', notaryController.listDocuments);
+router.get(
+  '/:id/documents',
+  authorize('ADMIN', 'USER'),
+  authorizeNotaryOwnerOrAdmin,
+  validateDocumentListQuery,
+  notaryController.listDocuments,
+);
 
 /**
  * @swagger
@@ -608,25 +655,34 @@ router.get('/:id/documents', notaryController.listDocuments);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
- *               - doc_category
- *               - file_name
- *               - file_url
+ *               - document_type
+ *               - file
  *             properties:
+ *               document_type:
+ *                 type: string
  *               doc_category:
  *                 type: string
- *               file_name:
+ *                 description: Legacy alias for document_type
+ *               file:
  *                 type: string
- *               file_url:
- *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
- *         description: Document uploaded, verified_status set to PENDING
+ *         description: Document uploaded, versioned, and marked as PENDING
  */
-router.post('/:id/documents', notaryController.uploadDocument);
+router.post(
+  '/:id/documents',
+  authorize('ADMIN', 'USER'),
+  authorizeNotaryOwnerOrAdmin,
+  uploadDocumentFile,
+  normalizeDocumentUploadPayload,
+  validateDocumentUpload,
+  notaryController.uploadDocument,
+);
 
 /**
  * @swagger
@@ -663,7 +719,12 @@ router.post('/:id/documents', notaryController.uploadDocument);
  *       200:
  *         description: Document verified
  */
-router.patch('/:id/documents/:docId/verify', notaryController.verifyDocument);
+router.patch(
+  '/:id/documents/:docId/verify',
+  authorize('ADMIN'),
+  validateDocumentVerification,
+  notaryController.verifyDocument,
+);
 
 // ── Audit & Incidents ────────────────────────────────────────────────────────
 
@@ -691,11 +752,26 @@ router.patch('/:id/documents/:docId/verify', notaryController.verifyDocument);
  *         schema:
  *           type: string
  *           format: date
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
  *     responses:
  *       200:
- *         description: Audit log entries
+ *         description: Paginated audit log entries
  */
-router.get('/:id/audit-logs', notaryController.getAuditLogs);
+router.get(
+  '/:id/audit-logs',
+  authorize('ADMIN'),
+  validateAuditLogQuery,
+  notaryController.getAuditLogs,
+);
 
 /**
  * @swagger
@@ -711,11 +787,31 @@ router.get('/:id/audit-logs', notaryController.getAuditLogs);
  *         required: true
  *         schema:
  *           type: integer
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [OPEN, UNDER_REVIEW, RESOLVED]
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
  *     responses:
  *       200:
- *         description: Incident list
+ *         description: Paginated incident list
  */
-router.get('/:id/incidents', notaryController.getIncidents);
+router.get(
+  '/:id/incidents',
+  authorize('ADMIN'),
+  validateIncidentListQuery,
+  notaryController.getIncidents,
+);
 
 /**
  * @swagger
@@ -744,16 +840,21 @@ router.get('/:id/incidents', notaryController.getIncidents);
  *                 type: string
  *               severity:
  *                 type: string
- *                 enum: [LOW, MEDIUM, HIGH]
+ *                 enum: [LOW, MEDIUM, HIGH, CRITICAL]
  *                 default: LOW
  *               status:
  *                 type: string
- *                 enum: [OPEN, RESOLVED]
+ *                 enum: [OPEN, UNDER_REVIEW, RESOLVED]
  *                 default: OPEN
  *     responses:
  *       201:
  *         description: Incident created
  */
-router.post('/:id/incidents', notaryController.createIncident);
+router.post(
+  '/:id/incidents',
+  authorize('ADMIN'),
+  validateIncidentCreate,
+  notaryController.createIncident,
+);
 
 module.exports = router;

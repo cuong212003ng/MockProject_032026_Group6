@@ -295,8 +295,16 @@ CREATE TABLE Notary_incidents (
     description   NVARCHAR(MAX) NULL,
     severity      NVARCHAR(20)  NULL,   -- LOW, MEDIUM, HIGH, CRITICAL
     status        NVARCHAR(20)  NULL,   -- OPEN, UNDER_REVIEW, RESOLVED
-    resolved_at   DATETIME      NULL
+    resolved_at   DATETIME      NULL,
+    created_at    DATETIME      NOT NULL DEFAULT GETDATE()
 );
+END
+GO
+
+IF COL_LENGTH('Notary_incidents', 'created_at') IS NULL
+BEGIN
+ALTER TABLE Notary_incidents
+ADD created_at DATETIME NOT NULL CONSTRAINT DF_Notary_incidents_created_at DEFAULT GETDATE();
 END
 GO
 
