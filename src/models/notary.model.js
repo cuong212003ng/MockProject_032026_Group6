@@ -30,7 +30,7 @@ const buildExpiryAlerts = (insurances, bonds) => {
 };
 
 // ─── Audit Log helper ─────────────────────────────────────────────────────────
-const writeAuditLog = async ({
+const insertAuditLog = async ({
   notaryId,
   tableName,
   recordId,
@@ -38,8 +38,10 @@ const writeAuditLog = async ({
   oldValue,
   newValue,
   changedBy,
-}) => {
-  await query(
+}, queryExecutor = query) => {
+  const runQuery = queryExecutor || query;
+
+  await runQuery(
     `INSERT INTO Notary_audit_logs
        (notary_id, table_name, record_id, action, old_value, new_value, change_by, created_at)
      VALUES
@@ -122,6 +124,20 @@ const findById = async (id) => {
   return result.recordset[0] || null;
 };
 
+const findByUserId = async (userId) => {
+  const result = await query(
+    `SELECT
+       n.id, n.user_id, n.ssn, n.full_name, n.date_of_birth,
+       n.photo_url, n.phone, n.email, n.employment_type,
+       n.start_date, n.internal_notes, n.status, n.residential_address
+     FROM notaries n
+     WHERE n.user_id = @userId`,
+    { userId },
+  );
+
+  return result.recordset[0] || null;
+};
+
 // ─── 3. Tạo mới Notary ───────────────────────────────────────────────────────
 const create = async (data) => {
   const {
@@ -164,9 +180,9 @@ const create = async (data) => {
 };
 
 // ─── 4. Cập nhật Bio ─────────────────────────────────────────────────────────
-const updateBio = async (id, data, changedBy) => {
-  const old = await findById(id);
-  if (!old) return null;
+const updateBio = async (id, data) => {
+  const previous = await findById(id);
+  if (!previous) return null;
 
   const fields = [];
   const params = { id };
@@ -179,27 +195,24 @@ const updateBio = async (id, data, changedBy) => {
     }
   });
 
-  if (fields.length === 0) return { updated: false };
+  if (fields.length === 0) return { updated: false, previous, current: previous };
 
   await query(`UPDATE notaries SET ${fields.join(', ')} WHERE id = @id`, params);
 
-  await writeAuditLog({
-    notaryId: id,
-    tableName: 'notaries',
-    recordId: id,
-    action: 'UPDATE',
-    oldValue: old,
-    newValue: data,
-    changedBy,
-  });
+  const current = await findById(id);
 
-  return { updated: true, updated_at: new Date().toISOString() };
+  return {
+    updated: true,
+    updated_at: new Date().toISOString(),
+    previous,
+    current,
+  };
 };
 
 // ─── 5. Toggle Status ────────────────────────────────────────────────────────
 const toggleStatus = async (id, isActive, changedBy) => {
-  const old = await findById(id);
-  if (!old) return null;
+  const previous = await findById(id);
+  if (!previous) return null;
 
   const newStatus = isActive ? 'ACTIVE' : 'INACTIVE';
 
@@ -216,23 +229,20 @@ const toggleStatus = async (id, isActive, changedBy) => {
     },
   );
 
-  await writeAuditLog({
-    notaryId: id,
-    tableName: 'notaries',
-    recordId: id,
-    action: 'UPDATE',
-    oldValue: { status: old.status },
-    newValue: { status: newStatus },
-    changedBy,
-  });
+  const current = await findById(id);
 
-  return { id, status: newStatus };
+  return {
+    id,
+    status: newStatus,
+    previous: { status: previous.status },
+    current: { status: current?.status || newStatus },
+  };
 };
 
 // ─── 6. Overview (KPI + Alerts) ──────────────────────────────────────────────
 const getOverview = async (id) => {
   const jobsResult = await query(
-    "SELECT COUNT(*) AS jobs_completed FROM [job assignments] ja INNER JOIN Job j ON j.id = ja.job_id WHERE ja.notary_id = @id AND j.Status = 'Completed'",
+    'SELECT COUNT(*) AS jobs_completed FROM [job assignments] ja INNER JOIN Job j ON j.id = ja.job_id WHERE ja.notary_id = @id AND j.Status = \'Completed\'',
     { id },
   );
 
@@ -705,31 +715,154 @@ const setAvailability = async (notaryId, data) => {
 };
 
 // ─── 17. Danh sách Documents ─────────────────────────────────────────────────
-const listDocuments = async (notaryId, { document_type, status } = {}) => {
-  let q = `
-    SELECT id, doc_category, file_name, upload_date, verified_status, version, is_current_version, file_url
-    FROM Notary_documents
-    WHERE notary_id = @notaryId AND is_current_version = 1
-  `;
+const buildDocumentFilters = (notaryId, filters = {}, options = {}) => {
+  const { currentOnly = true } = options;
+  const whereClauses = ['notary_id = @notaryId'];
   const params = { notaryId };
 
-  if (document_type) {
-    q += ' AND doc_category = @docType';
-    params.docType = document_type;
-  }
-  if (status) {
-    q += ' AND verified_status = @status';
-    params.status = status;
+  if (currentOnly) {
+    whereClauses.push('is_current_version = 1');
   }
 
-  q += ' ORDER BY upload_date DESC';
+  if (filters.document_type) {
+    whereClauses.push('doc_category = @documentType');
+    params.documentType = filters.document_type;
+  }
 
-  const result = await query(q, params);
+  if (filters.status) {
+    whereClauses.push('verified_status = @status');
+    params.status = filters.status;
+  }
+
+  if (filters.from_date) {
+    whereClauses.push('upload_date >= @fromDate');
+    params.fromDate = filters.from_date;
+  }
+
+  if (filters.to_date) {
+    whereClauses.push('upload_date < DATEADD(DAY, 1, @toDate)');
+    params.toDate = filters.to_date;
+  }
+
+  return {
+    whereClause: `WHERE ${whereClauses.join(' AND ')}`,
+    params,
+  };
+};
+
+const countDocuments = async (notaryId, filters = {}) => {
+  const { whereClause, params } = buildDocumentFilters(notaryId, filters);
+  const result = await query(
+    `SELECT COUNT(*) AS total
+     FROM Notary_documents
+     ${whereClause}`,
+    params,
+  );
+
+  return result.recordset[0]?.total || 0;
+};
+
+const listDocumentsPage = async (notaryId, filters = {}, { offset = 0, limit = 10 } = {}) => {
+  const { whereClause, params } = buildDocumentFilters(notaryId, filters);
+  const result = await query(
+    `SELECT
+       id AS doc_id,
+       notary_id,
+       doc_category AS document_type,
+       file_name,
+       upload_date,
+       verified_status,
+       version,
+       is_current_version,
+       file_url
+     FROM Notary_documents
+     ${whereClause}
+     ORDER BY upload_date DESC, id DESC
+     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`,
+    { ...params, offset, limit },
+  );
+
   return result.recordset;
 };
 
+const listDocuments = async (notaryId, { document_type, status } = {}) => {
+  return listDocumentsPage(notaryId, { document_type, status }, { offset: 0, limit: 1000 });
+};
+
 // ─── 18. Upload Document ─────────────────────────────────────────────────────
-const uploadDocument = async (notaryId, data) => {
+const findDocumentById = async (docId, notaryId = null) => {
+  let documentQuery = `
+    SELECT
+      id AS doc_id,
+      notary_id,
+      doc_category AS document_type,
+      file_name,
+      upload_date,
+      verified_status,
+      version,
+      is_current_version,
+      file_url
+    FROM Notary_documents
+    WHERE id = @docId
+  `;
+  const params = { docId };
+
+  if (notaryId) {
+    documentQuery += ' AND notary_id = @notaryId';
+    params.notaryId = notaryId;
+  }
+
+  const result = await query(documentQuery, params);
+  return result.recordset[0] || null;
+};
+
+const insertDocumentVersion = async (
+  notaryId,
+  { docCategory, fileName, fileUrl },
+  queryExecutor = query,
+) => {
+  const runQuery = queryExecutor || query;
+  const versionResult = await runQuery(
+    `SELECT MAX(version) AS max_ver FROM Notary_documents
+     WHERE notary_id = @notaryId AND doc_category = @docCategory`,
+    { notaryId, docCategory },
+  );
+  const newVersion = (versionResult.recordset[0]?.max_ver || 0) + 1;
+
+  await runQuery(
+    `UPDATE Notary_documents SET is_current_version = 0
+     WHERE notary_id = @notaryId AND doc_category = @docCategory`,
+    { notaryId, docCategory },
+  );
+
+  const result = await runQuery(
+    `INSERT INTO Notary_documents
+       (notary_id, doc_category, file_name, upload_date, verified_status, version, is_current_version, file_url)
+     OUTPUT
+       INSERTED.id AS doc_id,
+       INSERTED.notary_id,
+       INSERTED.doc_category AS document_type,
+       INSERTED.file_name,
+       INSERTED.upload_date,
+       INSERTED.verified_status,
+       INSERTED.version,
+       INSERTED.is_current_version,
+       INSERTED.file_url
+     VALUES (@notaryId, @docCategory, @fileName, GETDATE(), 'PENDING', @version, 1, @fileUrl)`,
+    {
+      notaryId,
+      docCategory: docCategory || null,
+      fileName: fileName || null,
+      version: newVersion,
+      fileUrl: fileUrl || null,
+    },
+  );
+
+  return result.recordset[0] || null;
+};
+
+/* eslint-disable no-unused-vars */
+const uploadDocumentLegacy = async (notaryId, data) => {
   const { doc_category, file_name, file_url } = data;
 
   // Lấy version hiện tại
@@ -765,7 +898,16 @@ const uploadDocument = async (notaryId, data) => {
 };
 
 // ─── 19. Verify Document ─────────────────────────────────────────────────────
-const verifyDocument = async (docId, status, changedBy) => {
+/* eslint-enable no-unused-vars */
+const uploadDocument = async (notaryId, data) =>
+  insertDocumentVersion(notaryId, {
+    docCategory: data.doc_category,
+    fileName: data.file_name,
+    fileUrl: data.file_url,
+  });
+
+/* eslint-disable no-unused-vars */
+const verifyDocumentLegacy = async (docId, status, changedBy) => {
   const VALID_STATUSES = ['APPROVED', 'PENDING', 'REJECTED'];
   if (!VALID_STATUSES.includes(status)) return null;
 
@@ -777,7 +919,7 @@ const verifyDocument = async (docId, status, changedBy) => {
   const doc = await query('SELECT notary_id FROM Notary_documents WHERE id = @docId', { docId });
   const notaryId = doc.recordset[0]?.notary_id;
 
-  await writeAuditLog({
+  await insertAuditLog({
     notaryId,
     tableName: 'Notary_documents',
     recordId: docId,
@@ -791,7 +933,100 @@ const verifyDocument = async (docId, status, changedBy) => {
 };
 
 // ─── 20. Audit Logs ──────────────────────────────────────────────────────────
-const getAuditLogs = async (notaryId, { from_date, to_date } = {}) => {
+/* eslint-enable no-unused-vars */
+const updateDocumentVerificationStatus = async (
+  docId,
+  notaryId,
+  status,
+  queryExecutor = query,
+) => {
+  const runQuery = queryExecutor || query;
+  const validStatuses = ['APPROVED', 'PENDING', 'REJECTED'];
+  if (!validStatuses.includes(status)) return null;
+
+  await runQuery(
+    `UPDATE Notary_documents
+     SET verified_status = @status
+     WHERE id = @docId AND notary_id = @notaryId`,
+    { docId, notaryId, status },
+  );
+
+  const result = await runQuery(
+    `SELECT
+       id AS doc_id,
+       notary_id,
+       doc_category AS document_type,
+       file_name,
+       upload_date,
+       verified_status,
+       version,
+       is_current_version,
+       file_url
+     FROM Notary_documents
+     WHERE id = @docId AND notary_id = @notaryId`,
+    { docId, notaryId },
+  );
+
+  return result.recordset[0] || null;
+};
+
+const verifyDocument = async (docId, status) => {
+  const document = await findDocumentById(docId);
+  if (!document) {
+    return null;
+  }
+
+  return updateDocumentVerificationStatus(docId, document.notary_id, status);
+};
+
+const buildAuditLogFilters = (notaryId, filters = {}) => {
+  const whereClauses = ['notary_id = @notaryId'];
+  const params = { notaryId };
+
+  if (filters.from_date) {
+    whereClauses.push('created_at >= @fromDate');
+    params.fromDate = filters.from_date;
+  }
+
+  if (filters.to_date) {
+    whereClauses.push('created_at < DATEADD(DAY, 1, @toDate)');
+    params.toDate = filters.to_date;
+  }
+
+  return {
+    whereClause: `WHERE ${whereClauses.join(' AND ')}`,
+    params,
+  };
+};
+
+const countAuditLogs = async (notaryId, filters = {}) => {
+  const { whereClause, params } = buildAuditLogFilters(notaryId, filters);
+  const result = await query(
+    `SELECT COUNT(*) AS total
+     FROM Notary_audit_logs
+     ${whereClause}`,
+    params,
+  );
+
+  return result.recordset[0]?.total || 0;
+};
+
+const getAuditLogsPage = async (notaryId, filters = {}, { offset = 0, limit = 10 } = {}) => {
+  const { whereClause, params } = buildAuditLogFilters(notaryId, filters);
+  const result = await query(
+    `SELECT id, table_name, record_id, action, old_value, new_value, change_by, created_at
+     FROM Notary_audit_logs
+     ${whereClause}
+     ORDER BY created_at DESC, id DESC
+     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`,
+    { ...params, offset, limit },
+  );
+
+  return result.recordset;
+};
+
+/* eslint-disable no-unused-vars */
+const getAuditLogsLegacy = async (notaryId, { from_date, to_date } = {}) => {
   let q = `
     SELECT id, table_name, record_id, action, old_value, new_value, change_by, created_at
     FROM Notary_audit_logs
@@ -819,21 +1054,77 @@ const getAuditLogs = async (notaryId, { from_date, to_date } = {}) => {
 };
 
 // ─── 21. Incidents ───────────────────────────────────────────────────────────
-const getIncidents = async (notaryId) => {
+/* eslint-enable no-unused-vars */
+const getAuditLogs = async (notaryId, { from_date, to_date } = {}) =>
+  getAuditLogsPage(notaryId, { from_date, to_date }, { offset: 0, limit: 1000 });
+
+const buildIncidentFilters = (notaryId, filters = {}) => {
+  const whereClauses = ['notary_id = @notaryId'];
+  const params = { notaryId };
+
+  if (filters.status) {
+    whereClauses.push('status = @status');
+    params.status = filters.status;
+  }
+
+  return {
+    whereClause: `WHERE ${whereClauses.join(' AND ')}`,
+    params,
+  };
+};
+
+const countIncidents = async (notaryId, filters = {}) => {
+  const { whereClause, params } = buildIncidentFilters(notaryId, filters);
   const result = await query(
-    `SELECT id, incident_type, description, severity, status, resolved_at
-     FROM Notary_incidents WHERE notary_id = @notaryId ORDER BY id DESC`,
-    { notaryId },
+    `SELECT COUNT(*) AS total
+     FROM Notary_incidents
+     ${whereClause}`,
+    params,
   );
+
+  return result.recordset[0]?.total || 0;
+};
+
+const getIncidentsPage = async (notaryId, filters = {}, { offset = 0, limit = 10 } = {}) => {
+  const { whereClause, params } = buildIncidentFilters(notaryId, filters);
+  const result = await query(
+    `SELECT
+       id AS inc_id,
+       notary_id,
+       incident_type,
+       description,
+       severity,
+       status,
+       resolved_at,
+       created_at
+     FROM Notary_incidents
+     ${whereClause}
+     ORDER BY created_at DESC, id DESC
+     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`,
+    { ...params, offset, limit },
+  );
+
   return result.recordset;
+};
+
+const getIncidents = async (notaryId) => {
+  return getIncidentsPage(notaryId, {}, { offset: 0, limit: 1000 });
 };
 
 const createIncident = async (notaryId, data) => {
   const { incident_type, description, severity, status } = data;
   const result = await query(
-    `INSERT INTO Notary_incidents (notary_id, incident_type, description, severity, status)
-     OUTPUT INSERTED.id
-     VALUES (@notaryId, @type, @desc, @severity, @status)`,
+    `INSERT INTO Notary_incidents (notary_id, incident_type, description, severity, status, created_at)
+     OUTPUT
+       INSERTED.id AS inc_id,
+       INSERTED.notary_id,
+       INSERTED.incident_type,
+       INSERTED.description,
+       INSERTED.severity,
+       INSERTED.status,
+       INSERTED.resolved_at,
+       INSERTED.created_at
+     VALUES (@notaryId, @type, @desc, @severity, @status, GETDATE())`,
     {
       notaryId,
       type: incident_type || null,
@@ -842,13 +1133,15 @@ const createIncident = async (notaryId, data) => {
       status: status || 'OPEN',
     },
   );
-  return { id: result.recordset[0]?.id };
+  return result.recordset[0] || null;
 };
 
 module.exports = {
   findAll,
   findById,
+  findByUserId,
   create,
+  insertAuditLog,
   updateBio,
   toggleStatus,
   getOverview,
@@ -862,10 +1155,19 @@ module.exports = {
   updateCapabilities,
   getAvailability,
   setAvailability,
+  countDocuments,
+  listDocumentsPage,
+  findDocumentById,
+  insertDocumentVersion,
+  updateDocumentVerificationStatus,
   listDocuments,
   uploadDocument,
   verifyDocument,
+  countAuditLogs,
+  getAuditLogsPage,
   getAuditLogs,
+  countIncidents,
+  getIncidentsPage,
   getIncidents,
   createIncident,
   computeRiskStatus,

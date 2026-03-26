@@ -12,3 +12,6 @@ yarn-debug.log*
 yarn-error.log*
 logs/
 *.log
+
+# Uploaded files
+uploads/

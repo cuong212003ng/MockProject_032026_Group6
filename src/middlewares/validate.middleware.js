@@ -1,7 +1,10 @@
-const { body, validationResult } = require('express-validator');
+const { body, param, query, validationResult } = require('express-validator');
 const { sendError } = require('../utils/response.helper');
 
-// ── Reusable middleware to collect and return validation errors ──
+const DOCUMENT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
+const INCIDENT_STATUSES = ['OPEN', 'UNDER_REVIEW', 'RESOLVED'];
+const INCIDENT_SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+
 const handleValidation = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -9,24 +12,61 @@ const handleValidation = (req, res, next) => {
       res,
       errors
         .array()
-        .map((e) => e.msg)
+        .map((error) => error.msg)
         .join(', '),
       422,
       errors.array(),
     );
   }
+
   next();
 };
 
-// ── Auth validators ───────────────────────────────────────
+const validateDateRange = (fromField, toField) => (req, res, next) => {
+  const fromDate = req.query[fromField];
+  const toDate = req.query[toField];
+
+  if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
+    return sendError(
+      res,
+      `${fromField} must be earlier than or equal to ${toField}`,
+      422,
+      [{ path: fromField, msg: `${fromField} must be earlier than or equal to ${toField}` }],
+    );
+  }
+
+  next();
+};
+
+const requireUploadedFile = (req, res, next) => {
+  if (!req.file) {
+    return sendError(res, 'file is required', 422, [{ path: 'file', msg: 'file is required' }]);
+  }
+
+  next();
+};
+
+const normalizeDocumentUploadPayload = (req, res, next) => {
+  if (!req.body.document_type && req.body.doc_category) {
+    req.body.document_type = req.body.doc_category;
+  }
+
+  next();
+};
+
+const requireDocumentType = (req, res, next) => {
+  if (!req.body.document_type) {
+    return sendError(res, 'document_type is required', 422, [
+      { path: 'document_type', msg: 'document_type is required' },
+    ]);
+  }
+
+  next();
+};
+
 const validateLogin = [
-  body('identifier')
-    .notEmpty()
-    .withMessage('Username or email is required')
-    .trim(),
-  body('password')
-    .notEmpty()
-    .withMessage('Password is required'),
+  body('identifier').notEmpty().withMessage('Username or email is required').trim(),
+  body('password').notEmpty().withMessage('Password is required'),
   handleValidation,
 ];
 
@@ -35,7 +75,7 @@ const validateRegister = [
     .notEmpty()
     .withMessage('Username is required')
     .isLength({ min: 3, max: 50 })
-    .withMessage('Username must be 3–50 characters')
+    .withMessage('Username must be 3-50 characters')
     .matches(/^[a-zA-Z0-9_]+$/)
     .withMessage('Username may only contain letters, digits, and underscores')
     .trim(),
@@ -54,10 +94,7 @@ const validateRegister = [
     .withMessage('Password must contain at least one uppercase letter')
     .matches(/[0-9]/)
     .withMessage('Password must contain at least one number'),
-  body('role')
-    .optional()
-    .isIn(['ADMIN', 'USER'])
-    .withMessage('Role must be ADMIN or USER'),
+  body('role').optional().isIn(['ADMIN', 'USER']).withMessage('Role must be ADMIN or USER'),
   handleValidation,
 ];
 
@@ -66,9 +103,111 @@ const validateRefreshToken = [
   handleValidation,
 ];
 
+const validateNotaryIdParam = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  handleValidation,
+];
+
+const validateDocumentIdParams = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  param('docId').isInt({ min: 1 }).withMessage('docId must be a positive integer'),
+  handleValidation,
+];
+
+const validateDocumentListQuery = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('limit must be between 1 and 100'),
+  query('document_type').optional().trim().notEmpty().withMessage('document_type must not be empty'),
+  query('status').optional().isIn(DOCUMENT_STATUSES).withMessage('Invalid document status'),
+  query('from_date').optional().isISO8601().withMessage('from_date must be a valid ISO date'),
+  query('to_date').optional().isISO8601().withMessage('to_date must be a valid ISO date'),
+  handleValidation,
+  validateDateRange('from_date', 'to_date'),
+];
+
+const validateDocumentUpload = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  body('document_type').optional().trim().notEmpty().withMessage('document_type must not be empty'),
+  body('doc_category').optional().trim().notEmpty().withMessage('doc_category must not be empty'),
+  handleValidation,
+  requireDocumentType,
+  requireUploadedFile,
+];
+
+const validateDocumentVerification = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  param('docId').isInt({ min: 1 }).withMessage('docId must be a positive integer'),
+  body('status').isIn(DOCUMENT_STATUSES).withMessage('status must be PENDING, APPROVED, or REJECTED'),
+  handleValidation,
+];
+
+const validateAuditLogQuery = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('limit must be between 1 and 100'),
+  query('from_date').optional().isISO8601().withMessage('from_date must be a valid ISO date'),
+  query('to_date').optional().isISO8601().withMessage('to_date must be a valid ISO date'),
+  handleValidation,
+  validateDateRange('from_date', 'to_date'),
+];
+
+const validateIncidentListQuery = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('limit must be between 1 and 100'),
+  query('status').optional().isIn(INCIDENT_STATUSES).withMessage('Invalid incident status'),
+  handleValidation,
+];
+
+const validateIncidentCreate = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  body('incident_type').optional().trim(),
+  body('description').optional().isString().withMessage('description must be a string'),
+  body('severity').optional().isIn(INCIDENT_SEVERITIES).withMessage('Invalid incident severity'),
+  body('status').optional().isIn(INCIDENT_STATUSES).withMessage('Invalid incident status'),
+  handleValidation,
+];
+
+const validateBioUpdate = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  body('phone').optional().isString().withMessage('phone must be a string'),
+  body('email').optional().isEmail().withMessage('email must be a valid email'),
+  body('residential_address').optional().isString().withMessage('residential_address must be a string'),
+  body('internal_notes').optional().isString().withMessage('internal_notes must be a string'),
+  body('photo_url').optional().isString().withMessage('photo_url must be a string'),
+  handleValidation,
+];
+
+const validateToggleStatus = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  body('is_active').isBoolean().withMessage('is_active must be a boolean'),
+  handleValidation,
+];
+
 module.exports = {
   handleValidation,
+  normalizeDocumentUploadPayload,
   validateLogin,
   validateRegister,
   validateRefreshToken,
+  validateNotaryIdParam,
+  validateDocumentIdParams,
+  validateDocumentListQuery,
+  validateDocumentUpload,
+  validateDocumentVerification,
+  validateAuditLogQuery,
+  validateIncidentListQuery,
+  validateIncidentCreate,
+  validateBioUpdate,
+  validateToggleStatus,
 };

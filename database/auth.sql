@@ -38,13 +38,23 @@ GO
 
 -- ── Seed: default admin account (password: Admin@123) ──────
 -- bcrypt hash of 'Admin@123' with salt rounds = 10
-IF NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin')
+IF EXISTS (SELECT 1 FROM users WHERE username = 'admin')
+BEGIN
+UPDATE users
+SET
+    email = 'admin@notarial.com',
+    password_hash = '$2b$10$X95LrlWAhDTssSzt08jmtOIqYgQyaPCYw9DMmSQMGWHrOy/o2c4xm',
+    role = 'ADMIN',
+    is_active = 1
+WHERE username = 'admin';
+END
+ELSE
 BEGIN
 INSERT INTO users (username, email, password_hash, role)
 VALUES (
     'admin',
     'admin@notarial.com',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- password: password (replace in production!)
+    '$2b$10$X95LrlWAhDTssSzt08jmtOIqYgQyaPCYw9DMmSQMGWHrOy/o2c4xm',
     'ADMIN'
 );
 END
