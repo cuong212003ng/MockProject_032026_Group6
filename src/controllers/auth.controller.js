@@ -1,13 +1,18 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 <<<<<<< HEAD
+<<<<<<< HEAD
 const { env } = require('../config/env');
 =======
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+const { env } = require('../config/env');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 const userModel = require('../models/user.model');
 const { sendSuccess, sendError } = require('../utils/response.helper');
 
 const SALT_ROUNDS = 10;
+<<<<<<< HEAD
 <<<<<<< HEAD
 const ACCESS_TOKEN_TTL = env.jwtExpiresIn;
 const REFRESH_TOKEN_TTL = env.jwtRefreshExpiresIn;
@@ -15,10 +20,15 @@ const REFRESH_TOKEN_TTL = env.jwtRefreshExpiresIn;
 const ACCESS_TOKEN_TTL = '15m';
 const REFRESH_TOKEN_TTL = '7d';
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+const ACCESS_TOKEN_TTL = env.jwtExpiresIn;
+const REFRESH_TOKEN_TTL = env.jwtRefreshExpiresIn;
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 const generateTokens = (user) => {
   const payload = { id: user.id, username: user.username, role: user.role };
+<<<<<<< HEAD
 <<<<<<< HEAD
   const accessToken = jwt.sign(payload, env.jwtSecret, { expiresIn: ACCESS_TOKEN_TTL });
   const refreshToken = jwt.sign(payload, env.jwtRefreshSecret, {
@@ -26,6 +36,10 @@ const generateTokens = (user) => {
   const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL });
   const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+  const accessToken = jwt.sign(payload, env.jwtSecret, { expiresIn: ACCESS_TOKEN_TTL });
+  const refreshToken = jwt.sign(payload, env.jwtRefreshSecret, {
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     expiresIn: REFRESH_TOKEN_TTL,
   });
   return { accessToken, refreshToken };
@@ -96,10 +110,14 @@ const refresh = async (req, res) => {
     let decoded;
     try {
 <<<<<<< HEAD
+<<<<<<< HEAD
       decoded = jwt.verify(refreshToken, env.jwtRefreshSecret);
 =======
       decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+      decoded = jwt.verify(refreshToken, env.jwtRefreshSecret);
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     } catch {
       return sendError(res, 'Invalid or expired refresh token', 401);
     }

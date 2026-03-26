@@ -1,8 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 const { query } = require('../config/db');
 =======
 const { query, sql } = require('../config/db');
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+const { query } = require('../config/db');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
 // ─── 1. Lấy danh sách Job ───
 const findAll = async (filters) => {
@@ -109,11 +113,14 @@ const findAvailableNotaries = async (jobId, limit, offset) => {
 // ─── 4. Assign Job cho Notary ───
 const assignJob = async (jobId, notaryId, assignedAt) => {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   const pool = await require('../config/db').query('SELECT 1');
   const { sql: mssql } = require('../config/db');
 
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   const assignResult = await query(
     `INSERT INTO [job assignments] (job_id, notary_id, assigned_at, accepted_at)
      OUTPUT INSERTED.id, INSERTED.job_id, INSERTED.notary_id, INSERTED.assigned_at, INSERTED.accepted_at
@@ -123,10 +130,14 @@ const assignJob = async (jobId, notaryId, assignedAt) => {
 
   await query(
 <<<<<<< HEAD
+<<<<<<< HEAD
     'UPDATE Job SET Status = \'Assigned\' WHERE id = @jobId',
 =======
     `UPDATE Job SET Status = 'Assigned' WHERE id = @jobId`,
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+    'UPDATE Job SET Status = \'Assigned\' WHERE id = @jobId',
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     { jobId }
   );
 
@@ -155,10 +166,14 @@ const acceptAssignment = async (assignmentId) => {
 const updateStatus = async (jobId, status) => {
   await query(
 <<<<<<< HEAD
+<<<<<<< HEAD
     'UPDATE Job SET Status = @status WHERE id = @jobId',
 =======
     `UPDATE Job SET Status = @status WHERE id = @jobId`,
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+    'UPDATE Job SET Status = @status WHERE id = @jobId',
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     { jobId, status }
   );
 
@@ -170,10 +185,14 @@ const updateStatus = async (jobId, status) => {
 
   const result = await query(
 <<<<<<< HEAD
+<<<<<<< HEAD
     'SELECT Status FROM Job WHERE id = @jobId',
 =======
     `SELECT Status FROM Job WHERE id = @jobId`,
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+    'SELECT Status FROM Job WHERE id = @jobId',
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     { jobId }
   );
   return result.recordset[0] || null;

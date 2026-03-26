@@ -376,16 +376,24 @@ CREATE TABLE Notary_incidents (
     severity      NVARCHAR(20)  NULL,   -- LOW, MEDIUM, HIGH, CRITICAL
     status        NVARCHAR(20)  NULL,   -- OPEN, UNDER_REVIEW, RESOLVED
 <<<<<<< HEAD
+<<<<<<< HEAD
     resolved_at   DATETIME      NULL,
     created_at    DATETIME      NOT NULL DEFAULT GETDATE()
 =======
     resolved_at   DATETIME      NULL
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    resolved_at   DATETIME      NULL,
+    created_at    DATETIME      NOT NULL DEFAULT GETDATE()
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 );
 END
 GO
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 IF COL_LENGTH('Notary_incidents', 'created_at') IS NULL
 BEGIN
 ALTER TABLE Notary_incidents
@@ -393,8 +401,11 @@ ADD created_at DATETIME NOT NULL CONSTRAINT DF_Notary_incidents_created_at DEFAU
 END
 GO
 
+<<<<<<< HEAD
 =======
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 -- ── 18. Notary_audit_logs ──
 IF OBJECT_ID ('Notary_audit_logs', 'U') IS NULL
 BEGIN
@@ -924,6 +935,7 @@ GO
 
 PRINT 'notarial_db khởi tạo thành công!';
 GO
+<<<<<<< HEAD
 
 ---- Updated according to charge requirements ----------------------------------------------
 
@@ -970,3 +982,5 @@ CREATE TABLE notary_selected_holidays (
 );
 END
 GO
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)

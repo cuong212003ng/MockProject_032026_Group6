@@ -15,8 +15,11 @@ process.env.MAX_FILE_SIZE_MB = '1';
 const notaryModel = require('../src/models/notary.model');
 const documentService = require('../src/services/document.service');
 const auditService = require('../src/services/audit.service');
+<<<<<<< HEAD
 const notaryProfileService = require('../src/services/notary-profile.service');
 const commissionService = require('../src/services/commission.service');
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 const app = require('../src/index');
 
 const originalState = {
@@ -41,8 +44,13 @@ const userOtherToken = issueToken({ id: 20, username: 'user-other', role: 'USER'
 const resetStubs = () => {
   notaryModel.findById = async (id) => {
     const map = {
+<<<<<<< HEAD
       1: { id: 1, user_id: 10, status: 'ACTIVE' },
       2: { id: 2, user_id: 20, status: 'ACTIVE' },
+=======
+      '1': { id: 1, user_id: 10, status: 'ACTIVE' },
+      '2': { id: 2, user_id: 20, status: 'ACTIVE' },
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     };
 
     return map[String(id)] || null;
@@ -149,7 +157,10 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
 
     assert.equal(response.statusCode, 401);
     assert.deepEqual(response.body, {
+<<<<<<< HEAD
       success: false,
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
       status: 'error',
       message: 'Access token is required',
       data: null,
@@ -168,9 +179,13 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
 
   await t.test('user can list documents for own profile', async () => {
     const response = await request(app)
+<<<<<<< HEAD
       .get(
         '/api/v1/notaries/1/documents?page=1&limit=10&document_type=COMMISSION_CER&status=PENDING',
       )
+=======
+      .get('/api/v1/notaries/1/documents?page=1&limit=10&document_type=COMMISSION_CER&status=PENDING')
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
       .set('Authorization', `Bearer ${userOwnToken}`);
 
     assert.equal(response.statusCode, 200);
@@ -195,9 +210,15 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
       .set('Authorization', `Bearer ${userOwnToken}`)
       .field('document_type', 'COMMISSION_CER');
 
+<<<<<<< HEAD
     assert.equal(response.statusCode, 400);
     assert.equal(response.body.success, false);
     assert.match(response.body.message, /file is required/i);
+=======
+    assert.equal(response.statusCode, 422);
+    assert.equal(response.body.status, 'error');
+    assert.equal(response.body.message, 'file is required');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   });
 
   await t.test('upload rejects unsupported file type', async () => {
@@ -274,6 +295,7 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
     assert.equal(response.body.data.pagination.total_items, 1);
   });
 });
+<<<<<<< HEAD
 
 // ============================================================================
 // START OF DEV-TRONGTUAN TEST CASES (SC003 & SC004)
@@ -399,3 +421,5 @@ test('====== SC004: Commission API Tests ======', async (t) => {
 // ============================================================================
 // END OF DEV-TRONGTUAN TEST CASES
 // ============================================================================
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)

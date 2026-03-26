@@ -39,6 +39,9 @@ GO
 -- ── Seed: default admin account (password: Admin@123) ──────
 -- bcrypt hash of 'Admin@123' with salt rounds = 10
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 IF EXISTS (SELECT 1 FROM users WHERE username = 'admin')
 BEGIN
 UPDATE users
@@ -50,19 +53,26 @@ SET
 WHERE username = 'admin';
 END
 ELSE
+<<<<<<< HEAD
 =======
 IF NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin')
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 BEGIN
 INSERT INTO users (username, email, password_hash, role)
 VALUES (
     'admin',
     'admin@notarial.com',
 <<<<<<< HEAD
+<<<<<<< HEAD
     '$2b$10$X95LrlWAhDTssSzt08jmtOIqYgQyaPCYw9DMmSQMGWHrOy/o2c4xm',
 =======
     '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- password: password (replace in production!)
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    '$2b$10$X95LrlWAhDTssSzt08jmtOIqYgQyaPCYw9DMmSQMGWHrOy/o2c4xm',
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     'ADMIN'
 );
 END

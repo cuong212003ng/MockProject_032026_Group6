@@ -12,10 +12,16 @@ yarn-debug.log*
 yarn-error.log*
 logs/
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 *.log
 
 # Uploaded files
 uploads/
+<<<<<<< HEAD
 =======
 *.log
 >>>>>>> 4795dd5 (fix: gitignore)
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)

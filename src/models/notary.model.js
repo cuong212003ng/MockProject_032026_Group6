@@ -31,6 +31,7 @@ const buildExpiryAlerts = (insurances, bonds) => {
 
 // ─── Audit Log helper ─────────────────────────────────────────────────────────
 <<<<<<< HEAD
+<<<<<<< HEAD
 const insertAuditLog = async (
   { notaryId, tableName, recordId, action, oldValue, newValue, changedBy },
   queryExecutor = query,
@@ -40,6 +41,9 @@ const insertAuditLog = async (
   await runQuery(
 =======
 const writeAuditLog = async ({
+=======
+const insertAuditLog = async ({
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   notaryId,
   tableName,
   recordId,
@@ -47,9 +51,16 @@ const writeAuditLog = async ({
   oldValue,
   newValue,
   changedBy,
+<<<<<<< HEAD
 }) => {
   await query(
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+}, queryExecutor = query) => {
+  const runQuery = queryExecutor || query;
+
+  await runQuery(
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     `INSERT INTO Notary_audit_logs
        (notary_id, table_name, record_id, action, old_value, new_value, change_by, created_at)
      VALUES
@@ -133,6 +144,9 @@ const findById = async (id) => {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 const findByUserId = async (userId) => {
   const result = await query(
     `SELECT
@@ -147,8 +161,11 @@ const findByUserId = async (userId) => {
   return result.recordset[0] || null;
 };
 
+<<<<<<< HEAD
 =======
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 // ─── 3. Tạo mới Notary ───────────────────────────────────────────────────────
 const create = async (data) => {
   const {
@@ -192,6 +209,7 @@ const create = async (data) => {
 
 // ─── 4. Cập nhật Bio ─────────────────────────────────────────────────────────
 <<<<<<< HEAD
+<<<<<<< HEAD
 const updateBio = async (id, data) => {
   const previous = await findById(id);
   if (!previous) return null;
@@ -200,6 +218,11 @@ const updateBio = async (id, data, changedBy) => {
   const old = await findById(id);
   if (!old) return null;
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+const updateBio = async (id, data) => {
+  const previous = await findById(id);
+  if (!previous) return null;
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
   const fields = [];
   const params = { id };
@@ -212,6 +235,7 @@ const updateBio = async (id, data, changedBy) => {
     }
   });
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   if (fields.length === 0) return { updated: false, previous, current: previous };
 
@@ -227,25 +251,30 @@ const updateBio = async (id, data, changedBy) => {
   };
 =======
   if (fields.length === 0) return { updated: false };
+=======
+  if (fields.length === 0) return { updated: false, previous, current: previous };
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
   await query(`UPDATE notaries SET ${fields.join(', ')} WHERE id = @id`, params);
 
-  await writeAuditLog({
-    notaryId: id,
-    tableName: 'notaries',
-    recordId: id,
-    action: 'UPDATE',
-    oldValue: old,
-    newValue: data,
-    changedBy,
-  });
+  const current = await findById(id);
 
+<<<<<<< HEAD
   return { updated: true, updated_at: new Date().toISOString() };
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+  return {
+    updated: true,
+    updated_at: new Date().toISOString(),
+    previous,
+    current,
+  };
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 };
 
 // ─── 5. Toggle Status ────────────────────────────────────────────────────────
 const toggleStatus = async (id, isActive, changedBy) => {
+<<<<<<< HEAD
 <<<<<<< HEAD
   const previous = await findById(id);
   if (!previous) return null;
@@ -253,6 +282,10 @@ const toggleStatus = async (id, isActive, changedBy) => {
   const old = await findById(id);
   if (!old) return null;
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+  const previous = await findById(id);
+  if (!previous) return null;
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
   const newStatus = isActive ? 'ACTIVE' : 'INACTIVE';
 
@@ -269,6 +302,7 @@ const toggleStatus = async (id, isActive, changedBy) => {
     },
   );
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   const current = await findById(id);
 
@@ -291,12 +325,22 @@ const toggleStatus = async (id, isActive, changedBy) => {
 
   return { id, status: newStatus };
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+  const current = await findById(id);
+
+  return {
+    id,
+    status: newStatus,
+    previous: { status: previous.status },
+    current: { status: current?.status || newStatus },
+  };
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 };
 
 // ─── 6. Overview (KPI + Alerts) ──────────────────────────────────────────────
 const getOverview = async (id) => {
   const jobsResult = await query(
-    "SELECT COUNT(*) AS jobs_completed FROM [job assignments] ja INNER JOIN Job j ON j.id = ja.job_id WHERE ja.notary_id = @id AND j.Status = 'Completed'",
+    'SELECT COUNT(*) AS jobs_completed FROM [job assignments] ja INNER JOIN Job j ON j.id = ja.job_id WHERE ja.notary_id = @id AND j.Status = \'Completed\'',
     { id },
   );
 
@@ -1131,32 +1175,159 @@ const uploadDocumentLegacy = async (notaryId, data) => {
 };
 
 // ─── 17. Danh sách Documents ─────────────────────────────────────────────────
-const listDocuments = async (notaryId, { document_type, status } = {}) => {
-  let q = `
-    SELECT id, doc_category, file_name, upload_date, verified_status, version, is_current_version, file_url
-    FROM Notary_documents
-    WHERE notary_id = @notaryId AND is_current_version = 1
-  `;
+const buildDocumentFilters = (notaryId, filters = {}, options = {}) => {
+  const { currentOnly = true } = options;
+  const whereClauses = ['notary_id = @notaryId'];
   const params = { notaryId };
 
-  if (document_type) {
-    q += ' AND doc_category = @docType';
-    params.docType = document_type;
-  }
-  if (status) {
-    q += ' AND verified_status = @status';
-    params.status = status;
+  if (currentOnly) {
+    whereClauses.push('is_current_version = 1');
   }
 
-  q += ' ORDER BY upload_date DESC';
+  if (filters.document_type) {
+    whereClauses.push('doc_category = @documentType');
+    params.documentType = filters.document_type;
+  }
 
-  const result = await query(q, params);
+  if (filters.status) {
+    whereClauses.push('verified_status = @status');
+    params.status = filters.status;
+  }
+
+  if (filters.from_date) {
+    whereClauses.push('upload_date >= @fromDate');
+    params.fromDate = filters.from_date;
+  }
+
+  if (filters.to_date) {
+    whereClauses.push('upload_date < DATEADD(DAY, 1, @toDate)');
+    params.toDate = filters.to_date;
+  }
+
+  return {
+    whereClause: `WHERE ${whereClauses.join(' AND ')}`,
+    params,
+  };
+};
+
+const countDocuments = async (notaryId, filters = {}) => {
+  const { whereClause, params } = buildDocumentFilters(notaryId, filters);
+  const result = await query(
+    `SELECT COUNT(*) AS total
+     FROM Notary_documents
+     ${whereClause}`,
+    params,
+  );
+
+  return result.recordset[0]?.total || 0;
+};
+
+const listDocumentsPage = async (notaryId, filters = {}, { offset = 0, limit = 10 } = {}) => {
+  const { whereClause, params } = buildDocumentFilters(notaryId, filters);
+  const result = await query(
+    `SELECT
+       id AS doc_id,
+       notary_id,
+       doc_category AS document_type,
+       file_name,
+       upload_date,
+       verified_status,
+       version,
+       is_current_version,
+       file_url
+     FROM Notary_documents
+     ${whereClause}
+     ORDER BY upload_date DESC, id DESC
+     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`,
+    { ...params, offset, limit },
+  );
+
   return result.recordset;
 };
 
+const listDocuments = async (notaryId, { document_type, status } = {}) => {
+  return listDocumentsPage(notaryId, { document_type, status }, { offset: 0, limit: 1000 });
+};
+
 // ─── 18. Upload Document ─────────────────────────────────────────────────────
+<<<<<<< HEAD
 const uploadDocument = async (notaryId, data) => {
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+const findDocumentById = async (docId, notaryId = null) => {
+  let documentQuery = `
+    SELECT
+      id AS doc_id,
+      notary_id,
+      doc_category AS document_type,
+      file_name,
+      upload_date,
+      verified_status,
+      version,
+      is_current_version,
+      file_url
+    FROM Notary_documents
+    WHERE id = @docId
+  `;
+  const params = { docId };
+
+  if (notaryId) {
+    documentQuery += ' AND notary_id = @notaryId';
+    params.notaryId = notaryId;
+  }
+
+  const result = await query(documentQuery, params);
+  return result.recordset[0] || null;
+};
+
+const insertDocumentVersion = async (
+  notaryId,
+  { docCategory, fileName, fileUrl },
+  queryExecutor = query,
+) => {
+  const runQuery = queryExecutor || query;
+  const versionResult = await runQuery(
+    `SELECT MAX(version) AS max_ver FROM Notary_documents
+     WHERE notary_id = @notaryId AND doc_category = @docCategory`,
+    { notaryId, docCategory },
+  );
+  const newVersion = (versionResult.recordset[0]?.max_ver || 0) + 1;
+
+  await runQuery(
+    `UPDATE Notary_documents SET is_current_version = 0
+     WHERE notary_id = @notaryId AND doc_category = @docCategory`,
+    { notaryId, docCategory },
+  );
+
+  const result = await runQuery(
+    `INSERT INTO Notary_documents
+       (notary_id, doc_category, file_name, upload_date, verified_status, version, is_current_version, file_url)
+     OUTPUT
+       INSERTED.id AS doc_id,
+       INSERTED.notary_id,
+       INSERTED.doc_category AS document_type,
+       INSERTED.file_name,
+       INSERTED.upload_date,
+       INSERTED.verified_status,
+       INSERTED.version,
+       INSERTED.is_current_version,
+       INSERTED.file_url
+     VALUES (@notaryId, @docCategory, @fileName, GETDATE(), 'PENDING', @version, 1, @fileUrl)`,
+    {
+      notaryId,
+      docCategory: docCategory || null,
+      fileName: fileName || null,
+      version: newVersion,
+      fileUrl: fileUrl || null,
+    },
+  );
+
+  return result.recordset[0] || null;
+};
+
+/* eslint-disable no-unused-vars */
+const uploadDocumentLegacy = async (notaryId, data) => {
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   const { doc_category, file_name, file_url } = data;
 
   // Lấy version hiện tại
@@ -1193,6 +1364,9 @@ const uploadDocument = async (notaryId, data) => {
 
 // ─── 19. Verify Document ─────────────────────────────────────────────────────
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 /* eslint-enable no-unused-vars */
 const uploadDocument = async (notaryId, data) =>
   insertDocumentVersion(notaryId, {
@@ -1203,9 +1377,12 @@ const uploadDocument = async (notaryId, data) =>
 
 /* eslint-disable no-unused-vars */
 const verifyDocumentLegacy = async (docId, status, changedBy) => {
+<<<<<<< HEAD
 =======
 const verifyDocument = async (docId, status, changedBy) => {
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   const VALID_STATUSES = ['APPROVED', 'PENDING', 'REJECTED'];
   if (!VALID_STATUSES.includes(status)) return null;
 
@@ -1218,10 +1395,14 @@ const verifyDocument = async (docId, status, changedBy) => {
   const notaryId = doc.recordset[0]?.notary_id;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   await insertAuditLog({
 =======
   await writeAuditLog({
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+  await insertAuditLog({
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     notaryId,
     tableName: 'Notary_documents',
     recordId: docId,
@@ -1236,8 +1417,18 @@ const verifyDocument = async (docId, status, changedBy) => {
 
 // ─── 20. Audit Logs ──────────────────────────────────────────────────────────
 <<<<<<< HEAD
+<<<<<<< HEAD
 /* eslint-enable no-unused-vars */
 const updateDocumentVerificationStatus = async (docId, notaryId, status, queryExecutor = query) => {
+=======
+/* eslint-enable no-unused-vars */
+const updateDocumentVerificationStatus = async (
+  docId,
+  notaryId,
+  status,
+  queryExecutor = query,
+) => {
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   const runQuery = queryExecutor || query;
   const validStatuses = ['APPROVED', 'PENDING', 'REJECTED'];
   if (!validStatuses.includes(status)) return null;
@@ -1325,9 +1516,12 @@ const getAuditLogsPage = async (notaryId, filters = {}, { offset = 0, limit = 10
 
 /* eslint-disable no-unused-vars */
 const getAuditLogsLegacy = async (notaryId, { from_date, to_date } = {}) => {
+<<<<<<< HEAD
 =======
 const getAuditLogs = async (notaryId, { from_date, to_date } = {}) => {
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   let q = `
     SELECT id, table_name, record_id, action, old_value, new_value, change_by, created_at
     FROM Notary_audit_logs
@@ -1356,6 +1550,9 @@ const getAuditLogs = async (notaryId, { from_date, to_date } = {}) => {
 
 // ─── 21. Incidents ───────────────────────────────────────────────────────────
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 /* eslint-enable no-unused-vars */
 const getAuditLogs = async (notaryId, { from_date, to_date } = {}) =>
   getAuditLogsPage(notaryId, { from_date, to_date }, { offset: 0, limit: 1000 });
@@ -1377,6 +1574,7 @@ const buildIncidentFilters = (notaryId, filters = {}) => {
 
 const countIncidents = async (notaryId, filters = {}) => {
   const { whereClause, params } = buildIncidentFilters(notaryId, filters);
+<<<<<<< HEAD
   const result = await query(
     `SELECT COUNT(*) AS total
      FROM Notary_incidents
@@ -1413,19 +1611,52 @@ const getIncidents = async (notaryId) => {
   return getIncidentsPage(notaryId, {}, { offset: 0, limit: 1000 });
 =======
 const getIncidents = async (notaryId) => {
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   const result = await query(
-    `SELECT id, incident_type, description, severity, status, resolved_at
-     FROM Notary_incidents WHERE notary_id = @notaryId ORDER BY id DESC`,
-    { notaryId },
+    `SELECT COUNT(*) AS total
+     FROM Notary_incidents
+     ${whereClause}`,
+    params,
   );
+
+  return result.recordset[0]?.total || 0;
+};
+
+const getIncidentsPage = async (notaryId, filters = {}, { offset = 0, limit = 10 } = {}) => {
+  const { whereClause, params } = buildIncidentFilters(notaryId, filters);
+  const result = await query(
+    `SELECT
+       id AS inc_id,
+       notary_id,
+       incident_type,
+       description,
+       severity,
+       status,
+       resolved_at,
+       created_at
+     FROM Notary_incidents
+     ${whereClause}
+     ORDER BY created_at DESC, id DESC
+     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`,
+    { ...params, offset, limit },
+  );
+
   return result.recordset;
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+};
+
+const getIncidents = async (notaryId) => {
+  return getIncidentsPage(notaryId, {}, { offset: 0, limit: 1000 });
 };
 
 const createIncident = async (notaryId, data) => {
   const { incident_type, description, severity, status } = data;
   const result = await query(
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     `INSERT INTO Notary_incidents (notary_id, incident_type, description, severity, status, created_at)
      OUTPUT
        INSERTED.id AS inc_id,
@@ -1437,11 +1668,14 @@ const createIncident = async (notaryId, data) => {
        INSERTED.resolved_at,
        INSERTED.created_at
      VALUES (@notaryId, @type, @desc, @severity, @status, GETDATE())`,
+<<<<<<< HEAD
 =======
     `INSERT INTO Notary_incidents (notary_id, incident_type, description, severity, status)
      OUTPUT INSERTED.id
      VALUES (@notaryId, @type, @desc, @severity, @status)`,
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     {
       notaryId,
       type: incident_type || null,
@@ -1450,6 +1684,7 @@ const createIncident = async (notaryId, data) => {
       status: status || 'OPEN',
     },
   );
+<<<<<<< HEAD
 <<<<<<< HEAD
   return result.recordset[0] || null;
 };
@@ -1661,11 +1896,15 @@ const deleteCommissionRecord = async (commId, notaryId, txQuery = query) => {
 =======
   return { id: result.recordset[0]?.id };
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+  return result.recordset[0] || null;
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 };
 
 module.exports = {
   findAll,
   findById,
+<<<<<<< HEAD
 <<<<<<< HEAD
   findByUserId,
   create,
@@ -1673,6 +1912,11 @@ module.exports = {
 =======
   create,
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+  findByUserId,
+  create,
+  insertAuditLog,
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   updateBio,
   toggleStatus,
   getOverview,
@@ -1687,11 +1931,15 @@ module.exports = {
   getAvailability,
   setAvailability,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   countDocuments,
   listDocumentsPage,
   findDocumentById,
   insertDocumentVersion,
   updateDocumentVerificationStatus,
+<<<<<<< HEAD
   listDocuments,
   uploadDocument,
   verifyDocument,
@@ -1717,10 +1965,16 @@ module.exports = {
   deleteAuthorityScopes,
   deleteCommissionRecord,
 =======
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   listDocuments,
   uploadDocument,
   verifyDocument,
+  countAuditLogs,
+  getAuditLogsPage,
   getAuditLogs,
+  countIncidents,
+  getIncidentsPage,
   getIncidents,
   createIncident,
   computeRiskStatus,

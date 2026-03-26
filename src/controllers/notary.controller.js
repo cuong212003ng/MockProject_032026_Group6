@@ -1,9 +1,15 @@
 const notaryModel = require('../models/notary.model');
 <<<<<<< HEAD
+<<<<<<< HEAD
 const documentService = require('../services/document.service');
 const auditService = require('../services/audit.service');
 const notaryProfileService = require('../services/notary-profile.service');
 const commissionService = require('../services/commission.service');
+=======
+const documentService = require('../services/document.service');
+const auditService = require('../services/audit.service');
+const notaryProfileService = require('../services/notary-profile.service');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 const { isAppError } = require('../utils/app-error');
 const { sendSuccess, sendError } = require('../utils/response.helper');
 
@@ -17,10 +23,13 @@ const handleServiceError = (res, error, fallbackMessage, scope) => {
   return sendError(res, fallbackMessage, 500);
 };
 
+<<<<<<< HEAD
 =======
 const { sendSuccess, sendError } = require('../utils/response.helper');
 
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 // ─── 1. GET /api/v1/notaries ──────────────────────────────────────────────────
 const getNotaryList = async (req, res) => {
   try {
@@ -74,11 +83,15 @@ const getNotaryById = async (req, res) => {
 const updateBio = async (req, res) => {
   try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     const result = await notaryProfileService.updateBio({
       notaryId: req.params.id,
       changes: req.body,
       actorId: req.auditContext?.actorId || req.user?.id || null,
     });
+<<<<<<< HEAD
 
     return sendSuccess(res, result, 'Bio updated successfully');
   } catch (err) {
@@ -86,16 +99,18 @@ const updateBio = async (req, res) => {
 =======
     const { id } = req.params;
     const changedBy = req.user?.id || null;
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
-    const notary = await notaryModel.findById(id);
-    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
-
-    const result = await notaryModel.updateBio(id, req.body, changedBy);
     return sendSuccess(res, result, 'Bio updated successfully');
   } catch (err) {
+<<<<<<< HEAD
     console.error('[updateBio]', err.message);
     return sendError(res, 'Failed to update bio', 500);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    return handleServiceError(res, err, 'Failed to update bio', 'updateBio');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   }
 };
 
@@ -103,11 +118,15 @@ const updateBio = async (req, res) => {
 const toggleStatus = async (req, res) => {
   try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     const result = await notaryProfileService.toggleStatus({
       notaryId: req.params.id,
       isActive: req.body.is_active,
       actorId: req.auditContext?.actorId || req.user?.id || null,
     });
+<<<<<<< HEAD
 
     return sendSuccess(res, result, 'Status updated successfully');
   } catch (err) {
@@ -116,20 +135,18 @@ const toggleStatus = async (req, res) => {
     const { id } = req.params;
     const { is_active } = req.body;
     const changedBy = req.user?.id || null;
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
-    if (is_active === undefined) {
-      return sendError(res, 'is_active (boolean) is required', 400);
-    }
-
-    const notary = await notaryModel.findById(id);
-    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
-
-    const result = await notaryModel.toggleStatus(id, is_active, changedBy);
-    return sendSuccess(res, { status: result.status, id: `#${result.id}` }, 'Status updated successfully');
+    return sendSuccess(res, result, 'Status updated successfully');
   } catch (err) {
+<<<<<<< HEAD
     console.error('[toggleStatus]', err.message);
     return sendError(res, 'Failed to toggle status', 500);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    return handleServiceError(res, err, 'Failed to toggle status', 'toggleStatus');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   }
 };
 
@@ -321,10 +338,14 @@ const setAvailability = async (req, res) => {
 const listDocuments = async (req, res) => {
   try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     const data = await documentService.listDocuments({
       notaryId: req.params.id,
       filters: req.query,
     });
+<<<<<<< HEAD
 
     return sendSuccess(res, data, 'Documents retrieved successfully');
   } catch (err) {
@@ -334,13 +355,18 @@ const listDocuments = async (req, res) => {
     const { document_type, status } = req.query;
     const notary = await notaryModel.findById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
-    const data = await notaryModel.listDocuments(id, { document_type, status });
-    return sendSuccess(res, { data }, 'Documents retrieved successfully');
+    return sendSuccess(res, data, 'Documents retrieved successfully');
   } catch (err) {
+<<<<<<< HEAD
     console.error('[listDocuments]', err.message);
     return sendError(res, 'Failed to retrieve documents', 500);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    return handleServiceError(res, err, 'Failed to retrieve documents', 'listDocuments');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   }
 };
 
@@ -348,12 +374,16 @@ const listDocuments = async (req, res) => {
 const uploadDocument = async (req, res) => {
   try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     const result = await documentService.uploadDocument({
       notaryId: req.params.id,
       body: req.body,
       file: req.file,
       actorId: req.auditContext?.actorId || req.user?.id || null,
     });
+<<<<<<< HEAD
 
     return sendSuccess(res, result, 'Document uploaded successfully', 201);
   } catch (err) {
@@ -362,13 +392,18 @@ const uploadDocument = async (req, res) => {
     const { id } = req.params;
     const notary = await notaryModel.findById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
-    const result = await notaryModel.uploadDocument(id, req.body);
     return sendSuccess(res, result, 'Document uploaded successfully', 201);
   } catch (err) {
+<<<<<<< HEAD
     console.error('[uploadDocument]', err.message);
     return sendError(res, 'Failed to upload document', 500);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    return handleServiceError(res, err, 'Failed to upload document', 'uploadDocument');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   }
 };
 
@@ -376,12 +411,16 @@ const uploadDocument = async (req, res) => {
 const verifyDocument = async (req, res) => {
   try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     const result = await documentService.verifyDocument({
       notaryId: req.params.id,
       docId: req.params.docId,
       status: req.body.status,
       actorId: req.auditContext?.actorId || req.user?.id || null,
     });
+<<<<<<< HEAD
 
     return sendSuccess(res, result, 'Document verification updated');
   } catch (err) {
@@ -401,6 +440,12 @@ const verifyDocument = async (req, res) => {
     console.error('[verifyDocument]', err.message);
     return sendError(res, 'Failed to verify document', 500);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+
+    return sendSuccess(res, result, 'Document verification updated');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to verify document', 'verifyDocument');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   }
 };
 
@@ -408,10 +453,14 @@ const verifyDocument = async (req, res) => {
 const getAuditLogs = async (req, res) => {
   try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     const data = await auditService.getAuditLogs({
       notaryId: req.params.id,
       filters: req.query,
     });
+<<<<<<< HEAD
 
     return sendSuccess(res, data, 'Audit logs retrieved successfully');
   } catch (err) {
@@ -421,13 +470,18 @@ const getAuditLogs = async (req, res) => {
     const { from_date, to_date } = req.query;
     const notary = await notaryModel.findById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
-    const logs = await notaryModel.getAuditLogs(id, { from_date, to_date });
-    return sendSuccess(res, { logs }, 'Audit logs retrieved successfully');
+    return sendSuccess(res, data, 'Audit logs retrieved successfully');
   } catch (err) {
+<<<<<<< HEAD
     console.error('[getAuditLogs]', err.message);
     return sendError(res, 'Failed to retrieve audit logs', 500);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    return handleServiceError(res, err, 'Failed to retrieve audit logs', 'getAuditLogs');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   }
 };
 
@@ -435,10 +489,14 @@ const getAuditLogs = async (req, res) => {
 const getIncidents = async (req, res) => {
   try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     const data = await auditService.getIncidents({
       notaryId: req.params.id,
       filters: req.query,
     });
+<<<<<<< HEAD
 
     return sendSuccess(res, data, 'Incidents retrieved successfully');
   } catch (err) {
@@ -447,13 +505,18 @@ const getIncidents = async (req, res) => {
     const { id } = req.params;
     const notary = await notaryModel.findById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
-    const data = await notaryModel.getIncidents(id);
-    return sendSuccess(res, { data }, 'Incidents retrieved successfully');
+    return sendSuccess(res, data, 'Incidents retrieved successfully');
   } catch (err) {
+<<<<<<< HEAD
     console.error('[getIncidents]', err.message);
     return sendError(res, 'Failed to retrieve incidents', 500);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    return handleServiceError(res, err, 'Failed to retrieve incidents', 'getIncidents');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   }
 };
 
@@ -461,11 +524,15 @@ const getIncidents = async (req, res) => {
 const createIncident = async (req, res) => {
   try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
     const result = await auditService.createIncident({
       notaryId: req.params.id,
       payload: req.body,
       actorId: req.auditContext?.actorId || req.user?.id || null,
     });
+<<<<<<< HEAD
 
     return sendSuccess(res, result, 'Incident created successfully', 201);
   } catch (err) {
@@ -505,13 +572,18 @@ const deleteCommission = async (req, res) => {
     const { id } = req.params;
     const notary = await notaryModel.findById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
-    const result = await notaryModel.createIncident(id, req.body);
     return sendSuccess(res, result, 'Incident created successfully', 201);
   } catch (err) {
+<<<<<<< HEAD
     console.error('[createIncident]', err.message);
     return sendError(res, 'Failed to create incident', 500);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    return handleServiceError(res, err, 'Failed to create incident', 'createIncident');
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
   }
 };
 

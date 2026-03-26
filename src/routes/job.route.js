@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const jobController = require('../controllers/job.controller');
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
 
 // router.use(authenticate); // TODO: bật lại khi deploy
 
