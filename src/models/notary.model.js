@@ -30,6 +30,7 @@ const buildExpiryAlerts = (insurances, bonds) => {
 };
 
 // ─── Audit Log helper ─────────────────────────────────────────────────────────
+<<<<<<< HEAD
 const insertAuditLog = async (
   { notaryId, tableName, recordId, action, oldValue, newValue, changedBy },
   queryExecutor = query,
@@ -37,6 +38,18 @@ const insertAuditLog = async (
   const runQuery = queryExecutor || query;
 
   await runQuery(
+=======
+const writeAuditLog = async ({
+  notaryId,
+  tableName,
+  recordId,
+  action,
+  oldValue,
+  newValue,
+  changedBy,
+}) => {
+  await query(
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     `INSERT INTO Notary_audit_logs
        (notary_id, table_name, record_id, action, old_value, new_value, change_by, created_at)
      VALUES
@@ -119,6 +132,7 @@ const findById = async (id) => {
   return result.recordset[0] || null;
 };
 
+<<<<<<< HEAD
 const findByUserId = async (userId) => {
   const result = await query(
     `SELECT
@@ -133,6 +147,8 @@ const findByUserId = async (userId) => {
   return result.recordset[0] || null;
 };
 
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 // ─── 3. Tạo mới Notary ───────────────────────────────────────────────────────
 const create = async (data) => {
   const {
@@ -175,9 +191,15 @@ const create = async (data) => {
 };
 
 // ─── 4. Cập nhật Bio ─────────────────────────────────────────────────────────
+<<<<<<< HEAD
 const updateBio = async (id, data) => {
   const previous = await findById(id);
   if (!previous) return null;
+=======
+const updateBio = async (id, data, changedBy) => {
+  const old = await findById(id);
+  if (!old) return null;
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 
   const fields = [];
   const params = { id };
@@ -190,6 +212,7 @@ const updateBio = async (id, data) => {
     }
   });
 
+<<<<<<< HEAD
   if (fields.length === 0) return { updated: false, previous, current: previous };
 
   await query(`UPDATE notaries SET ${fields.join(', ')} WHERE id = @id`, params);
@@ -202,12 +225,34 @@ const updateBio = async (id, data) => {
     previous,
     current,
   };
+=======
+  if (fields.length === 0) return { updated: false };
+
+  await query(`UPDATE notaries SET ${fields.join(', ')} WHERE id = @id`, params);
+
+  await writeAuditLog({
+    notaryId: id,
+    tableName: 'notaries',
+    recordId: id,
+    action: 'UPDATE',
+    oldValue: old,
+    newValue: data,
+    changedBy,
+  });
+
+  return { updated: true, updated_at: new Date().toISOString() };
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 };
 
 // ─── 5. Toggle Status ────────────────────────────────────────────────────────
 const toggleStatus = async (id, isActive, changedBy) => {
+<<<<<<< HEAD
   const previous = await findById(id);
   if (!previous) return null;
+=======
+  const old = await findById(id);
+  if (!old) return null;
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 
   const newStatus = isActive ? 'ACTIVE' : 'INACTIVE';
 
@@ -224,6 +269,7 @@ const toggleStatus = async (id, isActive, changedBy) => {
     },
   );
 
+<<<<<<< HEAD
   const current = await findById(id);
 
   return {
@@ -232,6 +278,19 @@ const toggleStatus = async (id, isActive, changedBy) => {
     previous: { status: previous.status },
     current: { status: current?.status || newStatus },
   };
+=======
+  await writeAuditLog({
+    notaryId: id,
+    tableName: 'notaries',
+    recordId: id,
+    action: 'UPDATE',
+    oldValue: { status: old.status },
+    newValue: { status: newStatus },
+    changedBy,
+  });
+
+  return { id, status: newStatus };
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 };
 
 // ─── 6. Overview (KPI + Alerts) ──────────────────────────────────────────────
@@ -278,6 +337,7 @@ const getStatusHistory = async (id) => {
 };
 
 // ─── 8. Danh sách Commission ─────────────────────────────────────────────────
+<<<<<<< HEAD
 // const getCommissions = async (notaryId) => {
 //   const commResult = await query(
 //     `SELECT
@@ -305,6 +365,35 @@ const getStatusHistory = async (id) => {
 
 //   return commissions;
 // };
+=======
+const getCommissions = async (notaryId) => {
+  const commResult = await query(
+    `SELECT
+       nc.id, nc.notary_id, nc.commission_number, nc.issue_date, nc.expiration_date,
+       nc.status, nc.is_renewal_applied, nc.expected_renewal_date,
+       s.state_code, s.state_name
+     FROM Notary_commissions nc
+     LEFT JOIN States s ON s.id = nc.commission_state_id
+     WHERE nc.notary_id = @notaryId
+     ORDER BY nc.issue_date DESC`,
+    { notaryId },
+  );
+
+  const commissions = commResult.recordset;
+
+  for (const comm of commissions) {
+    comm.risk_status = computeRiskStatus(comm.expiration_date);
+
+    const scopeResult = await query(
+      'SELECT id, authority_type FROM Authority_scope WHERE commission_id = @commId',
+      { commId: comm.id },
+    );
+    comm.authority_scopes = scopeResult.recordset;
+  }
+
+  return commissions;
+};
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 
 // ─── 9. Tạo Commission ───────────────────────────────────────────────────────
 const createCommission = async (notaryId, data) => {
@@ -401,7 +490,11 @@ const updateCommission = async (commId, data) => {
 // ─── 11. Xem Compliance (Bond + Insurance) ───────────────────────────────────
 const getCompliance = async (notaryId) => {
   const insResult = await query(
+<<<<<<< HEAD
     `SELECT id, policy_number, provider_name, coverage_amount, effective_date, expiration_date, file_url
+=======
+    `SELECT id, policy_number, provider_name, coverage_amount, expiration_date, file_url
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
      FROM Notary_insurances WHERE notary_id = @notaryId`,
     { notaryId },
   );
@@ -433,7 +526,10 @@ const updateCompliance = async (notaryId, data) => {
     bond_file_url,
     ins_provider,
     ins_coverage,
+<<<<<<< HEAD
     ins_effective_date,
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     ins_expiry,
     ins_policy_number,
     ins_file_url,
@@ -487,7 +583,10 @@ const updateCompliance = async (notaryId, data) => {
            policy_number = COALESCE(@policy, policy_number),
            provider_name = COALESCE(@provider, provider_name),
            coverage_amount = COALESCE(@coverage, coverage_amount),
+<<<<<<< HEAD
            effective_date = COALESCE(@effectiveDate, effective_date),
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
            expiration_date = COALESCE(@expiry, expiration_date),
            file_url = COALESCE(@fileUrl, file_url)
          WHERE notary_id = @notaryId`,
@@ -496,21 +595,32 @@ const updateCompliance = async (notaryId, data) => {
           policy: ins_policy_number || null,
           provider: ins_provider || null,
           coverage: ins_coverage || null,
+<<<<<<< HEAD
           effectiveDate: ins_effective_date || null,
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
           expiry: ins_expiry || null,
           fileUrl: ins_file_url || null,
         },
       );
     } else {
       await query(
+<<<<<<< HEAD
         `INSERT INTO Notary_insurances (notary_id, policy_number, provider_name, coverage_amount, effective_date, expiration_date, file_url)
          VALUES (@notaryId, @policy, @provider, @coverage, @effectiveDate, @expiry, @fileUrl)`,
+=======
+        `INSERT INTO Notary_insurances (notary_id, policy_number, provider_name, coverage_amount, expiration_date, file_url)
+         VALUES (@notaryId, @policy, @provider, @coverage, @expiry, @fileUrl)`,
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
         {
           notaryId,
           policy: ins_policy_number || null,
           provider: ins_provider || null,
           coverage: ins_coverage || null,
+<<<<<<< HEAD
           effectiveDate: ins_effective_date || null,
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
           expiry: ins_expiry || null,
           fileUrl: ins_file_url || null,
         },
@@ -546,6 +656,7 @@ const getCapabilities = async (notaryId) => {
     { notaryId },
   );
 
+<<<<<<< HEAD
   const langResult = await query(
     `SELECT nl.language_id, l.lang_name
      FROM notary_languages nl
@@ -554,11 +665,16 @@ const getCapabilities = async (notaryId) => {
     { notaryId },
   );
 
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   return {
     ...cap,
     ron_tech: ronResult.recordset[0] || null,
     service_areas: areaResult.recordset,
+<<<<<<< HEAD
     languages: langResult.recordset,
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   };
 };
 
@@ -574,7 +690,10 @@ const updateCapabilities = async (notaryId, data) => {
     ron_internet_ready,
     digital_status,
     service_areas,
+<<<<<<< HEAD
     languages,
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   } = data;
 
   const existCap = await query('SELECT id FROM notary_capabilities WHERE notary_id = @notaryId', {
@@ -668,6 +787,7 @@ const updateCapabilities = async (notaryId, data) => {
     }
   }
 
+<<<<<<< HEAD
   // Languages replace
   if (Array.isArray(languages)) {
     await query('DELETE FROM notary_languages WHERE notary_id = @notaryId', { notaryId });
@@ -680,6 +800,8 @@ const updateCapabilities = async (notaryId, data) => {
     }
   }
 
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   return { status: 'success' };
 };
 
@@ -690,6 +812,7 @@ const getAvailability = async (notaryId) => {
      FROM notary_availabilities WHERE notary_id = @notaryId`,
     { notaryId },
   );
+<<<<<<< HEAD
 
   const blackoutResult = await query(
     `SELECT blackout_date
@@ -703,10 +826,14 @@ const getAvailability = async (notaryId) => {
   }
 
   return availability;
+=======
+  return result.recordset[0] || null;
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 };
 
 // ─── 16. Cài đặt Availability (UPSERT) ──────────────────────────────────────
 const setAvailability = async (notaryId, data) => {
+<<<<<<< HEAD
   const {
     working_days_per_week,
     start_time,
@@ -962,6 +1089,74 @@ const insertDocumentVersion = async (
 
 /* eslint-disable no-unused-vars */
 const uploadDocumentLegacy = async (notaryId, data) => {
+=======
+  const { working_days_per_week, start_time, end_time, fixed_days_off } = data;
+
+  const exist = await query('SELECT id FROM notary_availabilities WHERE notary_id = @notaryId', {
+    notaryId,
+  });
+
+  if (exist.recordset.length > 0) {
+    await query(
+      `UPDATE notary_availabilities SET
+         working_days_per_week = COALESCE(@wpw, working_days_per_week),
+         start_time = COALESCE(@startTime, start_time),
+         end_time = COALESCE(@endTime, end_time),
+         fixed_days_off = COALESCE(@fixedOff, fixed_days_off)
+       WHERE notary_id = @notaryId`,
+      {
+        notaryId,
+        wpw: working_days_per_week || null,
+        startTime: start_time || null,
+        endTime: end_time || null,
+        fixedOff: fixed_days_off || null,
+      },
+    );
+  } else {
+    await query(
+      `INSERT INTO notary_availabilities
+         (notary_id, working_days_per_week, start_time, end_time, fixed_days_off)
+       VALUES (@notaryId, @wpw, @startTime, @endTime, @fixedOff)`,
+      {
+        notaryId,
+        wpw: working_days_per_week || null,
+        startTime: start_time || null,
+        endTime: end_time || null,
+        fixedOff: fixed_days_off || null,
+      },
+    );
+  }
+
+  return { status: 'success' };
+};
+
+// ─── 17. Danh sách Documents ─────────────────────────────────────────────────
+const listDocuments = async (notaryId, { document_type, status } = {}) => {
+  let q = `
+    SELECT id, doc_category, file_name, upload_date, verified_status, version, is_current_version, file_url
+    FROM Notary_documents
+    WHERE notary_id = @notaryId AND is_current_version = 1
+  `;
+  const params = { notaryId };
+
+  if (document_type) {
+    q += ' AND doc_category = @docType';
+    params.docType = document_type;
+  }
+  if (status) {
+    q += ' AND verified_status = @status';
+    params.status = status;
+  }
+
+  q += ' ORDER BY upload_date DESC';
+
+  const result = await query(q, params);
+  return result.recordset;
+};
+
+// ─── 18. Upload Document ─────────────────────────────────────────────────────
+const uploadDocument = async (notaryId, data) => {
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   const { doc_category, file_name, file_url } = data;
 
   // Lấy version hiện tại
@@ -997,6 +1192,7 @@ const uploadDocumentLegacy = async (notaryId, data) => {
 };
 
 // ─── 19. Verify Document ─────────────────────────────────────────────────────
+<<<<<<< HEAD
 /* eslint-enable no-unused-vars */
 const uploadDocument = async (notaryId, data) =>
   insertDocumentVersion(notaryId, {
@@ -1007,6 +1203,9 @@ const uploadDocument = async (notaryId, data) =>
 
 /* eslint-disable no-unused-vars */
 const verifyDocumentLegacy = async (docId, status, changedBy) => {
+=======
+const verifyDocument = async (docId, status, changedBy) => {
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   const VALID_STATUSES = ['APPROVED', 'PENDING', 'REJECTED'];
   if (!VALID_STATUSES.includes(status)) return null;
 
@@ -1018,7 +1217,11 @@ const verifyDocumentLegacy = async (docId, status, changedBy) => {
   const doc = await query('SELECT notary_id FROM Notary_documents WHERE id = @docId', { docId });
   const notaryId = doc.recordset[0]?.notary_id;
 
+<<<<<<< HEAD
   await insertAuditLog({
+=======
+  await writeAuditLog({
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     notaryId,
     tableName: 'Notary_documents',
     recordId: docId,
@@ -1032,6 +1235,7 @@ const verifyDocumentLegacy = async (docId, status, changedBy) => {
 };
 
 // ─── 20. Audit Logs ──────────────────────────────────────────────────────────
+<<<<<<< HEAD
 /* eslint-enable no-unused-vars */
 const updateDocumentVerificationStatus = async (docId, notaryId, status, queryExecutor = query) => {
   const runQuery = queryExecutor || query;
@@ -1121,6 +1325,9 @@ const getAuditLogsPage = async (notaryId, filters = {}, { offset = 0, limit = 10
 
 /* eslint-disable no-unused-vars */
 const getAuditLogsLegacy = async (notaryId, { from_date, to_date } = {}) => {
+=======
+const getAuditLogs = async (notaryId, { from_date, to_date } = {}) => {
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   let q = `
     SELECT id, table_name, record_id, action, old_value, new_value, change_by, created_at
     FROM Notary_audit_logs
@@ -1148,6 +1355,7 @@ const getAuditLogsLegacy = async (notaryId, { from_date, to_date } = {}) => {
 };
 
 // ─── 21. Incidents ───────────────────────────────────────────────────────────
+<<<<<<< HEAD
 /* eslint-enable no-unused-vars */
 const getAuditLogs = async (notaryId, { from_date, to_date } = {}) =>
   getAuditLogsPage(notaryId, { from_date, to_date }, { offset: 0, limit: 1000 });
@@ -1203,11 +1411,21 @@ const getIncidentsPage = async (notaryId, filters = {}, { offset = 0, limit = 10
 
 const getIncidents = async (notaryId) => {
   return getIncidentsPage(notaryId, {}, { offset: 0, limit: 1000 });
+=======
+const getIncidents = async (notaryId) => {
+  const result = await query(
+    `SELECT id, incident_type, description, severity, status, resolved_at
+     FROM Notary_incidents WHERE notary_id = @notaryId ORDER BY id DESC`,
+    { notaryId },
+  );
+  return result.recordset;
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 };
 
 const createIncident = async (notaryId, data) => {
   const { incident_type, description, severity, status } = data;
   const result = await query(
+<<<<<<< HEAD
     `INSERT INTO Notary_incidents (notary_id, incident_type, description, severity, status, created_at)
      OUTPUT
        INSERTED.id AS inc_id,
@@ -1219,6 +1437,11 @@ const createIncident = async (notaryId, data) => {
        INSERTED.resolved_at,
        INSERTED.created_at
      VALUES (@notaryId, @type, @desc, @severity, @status, GETDATE())`,
+=======
+    `INSERT INTO Notary_incidents (notary_id, incident_type, description, severity, status)
+     OUTPUT INSERTED.id
+     VALUES (@notaryId, @type, @desc, @severity, @status)`,
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     {
       notaryId,
       type: incident_type || null,
@@ -1227,6 +1450,7 @@ const createIncident = async (notaryId, data) => {
       status: status || 'OPEN',
     },
   );
+<<<<<<< HEAD
   return result.recordset[0] || null;
 };
 
@@ -1434,14 +1658,21 @@ const deleteCommissionRecord = async (commId, notaryId, txQuery = query) => {
     commId,
     notaryId,
   });
+=======
+  return { id: result.recordset[0]?.id };
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 };
 
 module.exports = {
   findAll,
   findById,
+<<<<<<< HEAD
   findByUserId,
   create,
   insertAuditLog,
+=======
+  create,
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   updateBio,
   toggleStatus,
   getOverview,
@@ -1455,6 +1686,7 @@ module.exports = {
   updateCapabilities,
   getAvailability,
   setAvailability,
+<<<<<<< HEAD
   countDocuments,
   listDocumentsPage,
   findDocumentById,
@@ -1484,4 +1716,13 @@ module.exports = {
   insertAuthorityScope,
   deleteAuthorityScopes,
   deleteCommissionRecord,
+=======
+  listDocuments,
+  uploadDocument,
+  verifyDocument,
+  getAuditLogs,
+  getIncidents,
+  createIncident,
+  computeRiskStatus,
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 };

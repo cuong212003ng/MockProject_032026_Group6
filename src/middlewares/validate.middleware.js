@@ -1,10 +1,7 @@
-const { body, param, query, validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 const { sendError } = require('../utils/response.helper');
 
-const DOCUMENT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
-const INCIDENT_STATUSES = ['OPEN', 'UNDER_REVIEW', 'RESOLVED'];
-const INCIDENT_SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-
+// ── Reusable middleware to collect and return validation errors ──
 const handleValidation = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

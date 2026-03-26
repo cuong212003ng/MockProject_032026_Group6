@@ -12,14 +12,19 @@ const authenticate = (req, res, next) => {
 =======
 const { sendError } = require('../utils/response.helper');
 
+// ── authenticate: verify JWT access token ─────────────────
 const authenticate = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
+<<<<<<< HEAD
   if (!token) {
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
     return sendError(res, 'Access token is required', 401);
   }
+=======
+  if (!token) return sendError(res, 'Access token is required', 401);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 
   try {
 <<<<<<< HEAD
@@ -29,11 +34,12 @@ const authenticate = (req, res, next) => {
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
     req.user = decoded;
     next();
-  } catch (error) {
+  } catch {
     return sendError(res, 'Invalid or expired token', 401);
   }
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 const authorize =
   (...roles) =>
@@ -83,3 +89,18 @@ module.exports = {
 =======
 module.exports = { authenticate };
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+// ── authorize: RBAC role guard ────────────────────────────
+// Usage: authorize('ADMIN') or authorize('ADMIN', 'USER')
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) return sendError(res, 'Authentication required', 401);
+    if (!roles.includes(req.user.role)) {
+      return sendError(res, `Access denied — requires role: ${roles.join(' | ')}`, 403);
+    }
+    next();
+  };
+};
+
+module.exports = { authenticate, authorize };
+>>>>>>> dabfe06 (feat/init databse and code base (#52))

@@ -7,17 +7,25 @@ USE master;
 GO
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'notarial_db')
     CREATE DATABASE notarial_db;
 =======
 CREATE DATABASE notarial_db;
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'notarial_db')
+    CREATE DATABASE notarial_db;
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 GO
 
 USE notarial_db;
 GO
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 -- ── 0a. States ──
 IF OBJECT_ID ('States', 'U') IS NULL
 BEGIN
@@ -40,13 +48,19 @@ CREATE TABLE Languages (
 END
 GO
 
+<<<<<<< HEAD
 =======
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 -- ── 1. notaries ──
 IF OBJECT_ID ('notaries', 'U') IS NULL
 BEGIN
 CREATE TABLE notaries (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     id                  INT PRIMARY KEY IDENTITY (1, 1),
     user_id             INT           NOT NULL,
     ssn                 VARCHAR(20)   NULL,
@@ -60,6 +74,7 @@ CREATE TABLE notaries (
     internal_notes      NVARCHAR(MAX) NULL,
     status              NVARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',  -- ACTIVE, INACTIVE, BLOCKED
     residential_address NVARCHAR(500) NULL
+<<<<<<< HEAD
 =======
     id INT PRIMARY KEY IDENTITY (1, 1),
     user_id INT NOT NULL,
@@ -75,6 +90,8 @@ CREATE TABLE notaries (
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     residential_address NVARCHAR (255) NULL
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 );
 
 END
@@ -113,16 +130,22 @@ IF OBJECT_ID ('notary_service_areas', 'U') IS NULL
 BEGIN
 CREATE TABLE notary_service_areas (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     id          INT PRIMARY KEY IDENTITY (1, 1),
     notary_id   INT NOT NULL REFERENCES notaries (id),
     state_id    INT NOT NULL REFERENCES States (id),
     county_name NVARCHAR(100) NULL   -- NULL nếu phục vụ cả bang
+<<<<<<< HEAD
 =======
     id INT PRIMARY KEY IDENTITY (1, 1),
     state_id INT NULL,
     county_name NVARCHAR (100) NULL,
     notary_id INT NOT NULL REFERENCES notaries (id)
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 );
 
 END
@@ -237,6 +260,9 @@ CREATE INDEX IX_Notifications_JobId ON notifications (job_id);
 END
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 -- ── 10. Notary_commissions ──
 IF OBJECT_ID ('Notary_commissions', 'U') IS NULL
 BEGIN
@@ -349,12 +375,17 @@ CREATE TABLE Notary_incidents (
     description   NVARCHAR(MAX) NULL,
     severity      NVARCHAR(20)  NULL,   -- LOW, MEDIUM, HIGH, CRITICAL
     status        NVARCHAR(20)  NULL,   -- OPEN, UNDER_REVIEW, RESOLVED
+<<<<<<< HEAD
     resolved_at   DATETIME      NULL,
     created_at    DATETIME      NOT NULL DEFAULT GETDATE()
+=======
+    resolved_at   DATETIME      NULL
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 );
 END
 GO
 
+<<<<<<< HEAD
 IF COL_LENGTH('Notary_incidents', 'created_at') IS NULL
 BEGIN
 ALTER TABLE Notary_incidents
@@ -362,6 +393,8 @@ ADD created_at DATETIME NOT NULL CONSTRAINT DF_Notary_incidents_created_at DEFAU
 END
 GO
 
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 -- ── 18. Notary_audit_logs ──
 IF OBJECT_ID ('Notary_audit_logs', 'U') IS NULL
 BEGIN
@@ -437,6 +470,7 @@ INSERT INTO States (id, state_code, state_name) VALUES
 SET IDENTITY_INSERT States OFF;
 END
 
+<<<<<<< HEAD
 -- ── Seed: Languages ──
 IF NOT EXISTS (SELECT 1 FROM Languages)
 BEGIN
@@ -451,6 +485,8 @@ END
 
 =======
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 -- ── Seed: notaries ──
 IF NOT EXISTS (
     SELECT 1
@@ -871,6 +907,7 @@ UNION ALL SELECT 'job assignments',         COUNT(*) FROM [job assignments]
 UNION ALL SELECT 'job_status_logs',         COUNT(*) FROM job_status_logs
 UNION ALL SELECT 'events',                  COUNT(*) FROM events
 UNION ALL SELECT 'notifications',           COUNT(*) FROM notifications;
+<<<<<<< HEAD
 GO
 
 -- Check if 'effective_date' column exists in 'Notary_insurances' table, if not, add it
@@ -881,6 +918,8 @@ BEGIN
     
     PRINT 'Da them cot effective_date vao bang Notary_insurances';
 END
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 GO
 
 PRINT 'notarial_db khởi tạo thành công!';

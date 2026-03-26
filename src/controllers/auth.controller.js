@@ -1,18 +1,31 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+<<<<<<< HEAD
 const { env } = require('../config/env');
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 const userModel = require('../models/user.model');
 const { sendSuccess, sendError } = require('../utils/response.helper');
 
 const SALT_ROUNDS = 10;
+<<<<<<< HEAD
 const ACCESS_TOKEN_TTL = env.jwtExpiresIn;
 const REFRESH_TOKEN_TTL = env.jwtRefreshExpiresIn;
+=======
+const ACCESS_TOKEN_TTL = '15m';
+const REFRESH_TOKEN_TTL = '7d';
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 const generateTokens = (user) => {
   const payload = { id: user.id, username: user.username, role: user.role };
+<<<<<<< HEAD
   const accessToken = jwt.sign(payload, env.jwtSecret, { expiresIn: ACCESS_TOKEN_TTL });
   const refreshToken = jwt.sign(payload, env.jwtRefreshSecret, {
+=======
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL });
+  const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     expiresIn: REFRESH_TOKEN_TTL,
   });
   return { accessToken, refreshToken };
@@ -82,7 +95,11 @@ const refresh = async (req, res) => {
     // Verify signature
     let decoded;
     try {
+<<<<<<< HEAD
       decoded = jwt.verify(refreshToken, env.jwtRefreshSecret);
+=======
+      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     } catch {
       return sendError(res, 'Invalid or expired refresh token', 401);
     }

@@ -1,4 +1,5 @@
 const notaryModel = require('../models/notary.model');
+<<<<<<< HEAD
 const documentService = require('../services/document.service');
 const auditService = require('../services/audit.service');
 const notaryProfileService = require('../services/notary-profile.service');
@@ -16,6 +17,10 @@ const handleServiceError = (res, error, fallbackMessage, scope) => {
   return sendError(res, fallbackMessage, 500);
 };
 
+=======
+const { sendSuccess, sendError } = require('../utils/response.helper');
+
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 // ─── 1. GET /api/v1/notaries ──────────────────────────────────────────────────
 const getNotaryList = async (req, res) => {
   try {
@@ -36,12 +41,16 @@ const createNotary = async (req, res) => {
       return sendError(res, 'full_name and email are required', 400);
     }
     const id = await notaryModel.create(req.body);
+<<<<<<< HEAD
     return sendSuccess(
       res,
       { id: `#${id}`, status: 'PENDING' },
       'Notary created successfully',
       201,
     );
+=======
+    return sendSuccess(res, { id: `#${id}`, status: 'PENDING' }, 'Notary created successfully', 201);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   } catch (err) {
     console.error('[createNotary]', err.message);
     return sendError(res, 'Failed to create notary', 500);
@@ -64,6 +73,7 @@ const getNotaryById = async (req, res) => {
 // ─── 4. PATCH /api/v1/notaries/:id/bio ───────────────────────────────────────
 const updateBio = async (req, res) => {
   try {
+<<<<<<< HEAD
     const result = await notaryProfileService.updateBio({
       notaryId: req.params.id,
       changes: req.body,
@@ -73,12 +83,26 @@ const updateBio = async (req, res) => {
     return sendSuccess(res, result, 'Bio updated successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to update bio', 'updateBio');
+=======
+    const { id } = req.params;
+    const changedBy = req.user?.id || null;
+
+    const notary = await notaryModel.findById(id);
+    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+
+    const result = await notaryModel.updateBio(id, req.body, changedBy);
+    return sendSuccess(res, result, 'Bio updated successfully');
+  } catch (err) {
+    console.error('[updateBio]', err.message);
+    return sendError(res, 'Failed to update bio', 500);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   }
 };
 
 // ─── 5. PATCH /api/v1/notaries/:id/status ────────────────────────────────────
 const toggleStatus = async (req, res) => {
   try {
+<<<<<<< HEAD
     const result = await notaryProfileService.toggleStatus({
       notaryId: req.params.id,
       isActive: req.body.is_active,
@@ -88,6 +112,24 @@ const toggleStatus = async (req, res) => {
     return sendSuccess(res, result, 'Status updated successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to toggle status', 'toggleStatus');
+=======
+    const { id } = req.params;
+    const { is_active } = req.body;
+    const changedBy = req.user?.id || null;
+
+    if (is_active === undefined) {
+      return sendError(res, 'is_active (boolean) is required', 400);
+    }
+
+    const notary = await notaryModel.findById(id);
+    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+
+    const result = await notaryModel.toggleStatus(id, is_active, changedBy);
+    return sendSuccess(res, { status: result.status, id: `#${result.id}` }, 'Status updated successfully');
+  } catch (err) {
+    console.error('[toggleStatus]', err.message);
+    return sendError(res, 'Failed to toggle status', 500);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   }
 };
 
@@ -125,7 +167,14 @@ const getStatusHistory = async (req, res) => {
 const getCommissions = async (req, res) => {
   try {
     const { id } = req.params;
+<<<<<<< HEAD
     const data = await commissionService.getCommissions(id);
+=======
+    const notary = await notaryModel.findById(id);
+    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+
+    const data = await notaryModel.getCommissions(id);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     return sendSuccess(res, data, 'Commissions retrieved successfully');
   } catch (err) {
     console.error('[getCommissions]', err.message);
@@ -140,12 +189,20 @@ const createCommission = async (req, res) => {
     const notary = await notaryModel.findById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
 
+<<<<<<< HEAD
     const result = await commissionService.createCommission(id, req.body);
+=======
+    const result = await notaryModel.createCommission(id, req.body);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     return sendSuccess(
       res,
       { id: `#${result.id}`, risk_status: result.risk_status },
       'Commission created successfully',
+<<<<<<< HEAD
       201,
+=======
+      201
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     );
   } catch (err) {
     console.error('[createCommission]', err.message);
@@ -156,8 +213,13 @@ const createCommission = async (req, res) => {
 // ─── 10. PATCH /api/v1/notaries/:id/commissions/:cid ─────────────────────────
 const updateCommission = async (req, res) => {
   try {
+<<<<<<< HEAD
     const { id, cid } = req.params;
     const result = await commissionService.updateCommission(id, cid, req.body);
+=======
+    const { cid } = req.params;
+    const result = await notaryModel.updateCommission(cid, req.body);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
     return sendSuccess(res, result, 'Commission updated successfully');
   } catch (err) {
     console.error('[updateCommission]', err.message);
@@ -258,6 +320,7 @@ const setAvailability = async (req, res) => {
 // ─── 17. GET /api/v1/notaries/:id/documents ──────────────────────────────────
 const listDocuments = async (req, res) => {
   try {
+<<<<<<< HEAD
     const data = await documentService.listDocuments({
       notaryId: req.params.id,
       filters: req.query,
@@ -266,12 +329,25 @@ const listDocuments = async (req, res) => {
     return sendSuccess(res, data, 'Documents retrieved successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to retrieve documents', 'listDocuments');
+=======
+    const { id } = req.params;
+    const { document_type, status } = req.query;
+    const notary = await notaryModel.findById(id);
+    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+
+    const data = await notaryModel.listDocuments(id, { document_type, status });
+    return sendSuccess(res, { data }, 'Documents retrieved successfully');
+  } catch (err) {
+    console.error('[listDocuments]', err.message);
+    return sendError(res, 'Failed to retrieve documents', 500);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   }
 };
 
 // ─── 18. POST /api/v1/notaries/:id/documents ─────────────────────────────────
 const uploadDocument = async (req, res) => {
   try {
+<<<<<<< HEAD
     const result = await documentService.uploadDocument({
       notaryId: req.params.id,
       body: req.body,
@@ -282,12 +358,24 @@ const uploadDocument = async (req, res) => {
     return sendSuccess(res, result, 'Document uploaded successfully', 201);
   } catch (err) {
     return handleServiceError(res, err, 'Failed to upload document', 'uploadDocument');
+=======
+    const { id } = req.params;
+    const notary = await notaryModel.findById(id);
+    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+
+    const result = await notaryModel.uploadDocument(id, req.body);
+    return sendSuccess(res, result, 'Document uploaded successfully', 201);
+  } catch (err) {
+    console.error('[uploadDocument]', err.message);
+    return sendError(res, 'Failed to upload document', 500);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   }
 };
 
 // ─── 19. PATCH /api/v1/notaries/:id/documents/:docId/verify ──────────────────
 const verifyDocument = async (req, res) => {
   try {
+<<<<<<< HEAD
     const result = await documentService.verifyDocument({
       notaryId: req.params.id,
       docId: req.params.docId,
@@ -298,12 +386,28 @@ const verifyDocument = async (req, res) => {
     return sendSuccess(res, result, 'Document verification updated');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to verify document', 'verifyDocument');
+=======
+    const { docId } = req.params;
+    const { status } = req.body;
+    const changedBy = req.user?.id || null;
+
+    if (!status) return sendError(res, 'status is required (APPROVED / PENDING / REJECTED)', 400);
+
+    const result = await notaryModel.verifyDocument(docId, status, changedBy);
+    if (!result) return sendError(res, 'Invalid status value', 400);
+
+    return sendSuccess(res, result, 'Document verification updated');
+  } catch (err) {
+    console.error('[verifyDocument]', err.message);
+    return sendError(res, 'Failed to verify document', 500);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   }
 };
 
 // ─── 20. GET /api/v1/notaries/:id/audit-logs ─────────────────────────────────
 const getAuditLogs = async (req, res) => {
   try {
+<<<<<<< HEAD
     const data = await auditService.getAuditLogs({
       notaryId: req.params.id,
       filters: req.query,
@@ -312,12 +416,25 @@ const getAuditLogs = async (req, res) => {
     return sendSuccess(res, data, 'Audit logs retrieved successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to retrieve audit logs', 'getAuditLogs');
+=======
+    const { id } = req.params;
+    const { from_date, to_date } = req.query;
+    const notary = await notaryModel.findById(id);
+    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+
+    const logs = await notaryModel.getAuditLogs(id, { from_date, to_date });
+    return sendSuccess(res, { logs }, 'Audit logs retrieved successfully');
+  } catch (err) {
+    console.error('[getAuditLogs]', err.message);
+    return sendError(res, 'Failed to retrieve audit logs', 500);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   }
 };
 
 // ─── 21. GET /api/v1/notaries/:id/incidents ──────────────────────────────────
 const getIncidents = async (req, res) => {
   try {
+<<<<<<< HEAD
     const data = await auditService.getIncidents({
       notaryId: req.params.id,
       filters: req.query,
@@ -326,12 +443,24 @@ const getIncidents = async (req, res) => {
     return sendSuccess(res, data, 'Incidents retrieved successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to retrieve incidents', 'getIncidents');
+=======
+    const { id } = req.params;
+    const notary = await notaryModel.findById(id);
+    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+
+    const data = await notaryModel.getIncidents(id);
+    return sendSuccess(res, { data }, 'Incidents retrieved successfully');
+  } catch (err) {
+    console.error('[getIncidents]', err.message);
+    return sendError(res, 'Failed to retrieve incidents', 500);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   }
 };
 
 // ─── 22. POST /api/v1/notaries/:id/incidents ─────────────────────────────────
 const createIncident = async (req, res) => {
   try {
+<<<<<<< HEAD
     const result = await auditService.createIncident({
       notaryId: req.params.id,
       payload: req.body,
@@ -372,6 +501,17 @@ const deleteCommission = async (req, res) => {
     return sendSuccess(res, result, 'Commission deleted successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to delete commission', 'deleteCommission');
+=======
+    const { id } = req.params;
+    const notary = await notaryModel.findById(id);
+    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
+
+    const result = await notaryModel.createIncident(id, req.body);
+    return sendSuccess(res, result, 'Incident created successfully', 201);
+  } catch (err) {
+    console.error('[createIncident]', err.message);
+    return sendError(res, 'Failed to create incident', 500);
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
   }
 };
 
@@ -398,8 +538,11 @@ module.exports = {
   getAuditLogs,
   getIncidents,
   createIncident,
+<<<<<<< HEAD
   // ─── SC003: Personal Info (dev-trongtuan) ───
   updatePersonalInfo,
   // ─── SC004: Commission (dev-trongtuan) ───
   deleteCommission,
+=======
+>>>>>>> dabfe06 (feat/init databse and code base (#52))
 };
