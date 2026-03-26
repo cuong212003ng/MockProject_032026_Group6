@@ -6,29 +6,52 @@
 USE master;
 GO
 
-CREATE DATABASE notarial_db;
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'notarial_db')
+    CREATE DATABASE notarial_db;
 GO
 
 USE notarial_db;
+GO
+
+-- ── 0a. States ──
+IF OBJECT_ID ('States', 'U') IS NULL
+BEGIN
+CREATE TABLE States (
+    id         INT PRIMARY KEY IDENTITY (1, 1),
+    state_code VARCHAR(10)    NOT NULL,
+    state_name NVARCHAR(100)  NOT NULL
+);
+END
+GO
+
+-- ── 0b. Languages ──
+IF OBJECT_ID ('Languages', 'U') IS NULL
+BEGIN
+CREATE TABLE Languages (
+    id        INT PRIMARY KEY IDENTITY (1, 1),
+    lang_code VARCHAR(10)   NULL,
+    lang_name NVARCHAR(100) NULL
+);
+END
 GO
 
 -- ── 1. notaries ──
 IF OBJECT_ID ('notaries', 'U') IS NULL
 BEGIN
 CREATE TABLE notaries (
-    id INT PRIMARY KEY IDENTITY (1, 1),
-    user_id INT NOT NULL,
-    ssn VARCHAR(20) NULL,
-    full_name NVARCHAR (100) NOT NULL,
-    date_of_birth DATE NULL,
-    photo_url VARCHAR(255) NULL,
-    phone VARCHAR(20) NULL,
-    email VARCHAR(100) NULL,
-    employment_type VARCHAR(30) NULL,
-    start_date DATE NULL,
-    internal_notes NVARCHAR (500) NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    residential_address NVARCHAR (255) NULL
+    id                  INT PRIMARY KEY IDENTITY (1, 1),
+    user_id             INT           NOT NULL,
+    ssn                 VARCHAR(20)   NULL,
+    full_name           NVARCHAR(200) NOT NULL,
+    date_of_birth       DATE          NULL,
+    photo_url           NVARCHAR(500) NULL,
+    phone               VARCHAR(20)   NULL,
+    email               VARCHAR(100)  NULL,
+    employment_type     NVARCHAR(50)  NULL,   -- FULL_TIME, INDEPENDENT_CONTRACT
+    start_date          DATE          NULL,
+    internal_notes      NVARCHAR(MAX) NULL,
+    status              NVARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',  -- ACTIVE, INACTIVE, BLOCKED
+    residential_address NVARCHAR(500) NULL
 );
 
 END
@@ -66,10 +89,10 @@ END
 IF OBJECT_ID ('notary_service_areas', 'U') IS NULL
 BEGIN
 CREATE TABLE notary_service_areas (
-    id INT PRIMARY KEY IDENTITY (1, 1),
-    state_id INT NULL,
-    county_name NVARCHAR (100) NULL,
-    notary_id INT NOT NULL REFERENCES notaries (id)
+    id          INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id   INT NOT NULL REFERENCES notaries (id),
+    state_id    INT NOT NULL REFERENCES States (id),
+    county_name NVARCHAR(100) NULL   -- NULL nếu phục vụ cả bang
 );
 
 END
@@ -158,6 +181,198 @@ CREATE TABLE notifications (
 
 CREATE INDEX IX_Notifications_JobId ON notifications (job_id);
 
+END
+
+-- ── 10. Notary_commissions ──
+IF OBJECT_ID ('Notary_commissions', 'U') IS NULL
+BEGIN
+CREATE TABLE Notary_commissions (
+    id                    INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id             INT NOT NULL REFERENCES notaries (id),
+    commission_state_id   INT NULL     REFERENCES States (id),
+    commission_number     VARCHAR(50)  NULL,
+    issue_date            DATE         NULL,
+    expiration_date       DATE         NULL,
+    status                NVARCHAR(20) NULL,   -- VALID, EXPIRED, NOT_QUALIFIED
+    is_renewal_applied    BIT          NOT NULL DEFAULT 0,
+    expected_renewal_date DATE         NULL
+);
+END
+GO
+
+-- ── 11. Authority_scope ──
+IF OBJECT_ID ('Authority_scope', 'U') IS NULL
+BEGIN
+CREATE TABLE Authority_scope (
+    id             INT PRIMARY KEY IDENTITY (1, 1),
+    commission_id  INT          NOT NULL REFERENCES Notary_commissions (id),
+    authority_type NVARCHAR(50) NULL   -- ACKNOWLEDGMENT, JURAT, RON, LOAN_SIGNING
+);
+END
+GO
+
+-- ── 12. Notary_documents ──
+IF OBJECT_ID ('Notary_documents', 'U') IS NULL
+BEGIN
+CREATE TABLE Notary_documents (
+    id                 INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id          INT           NOT NULL REFERENCES notaries (id),
+    doc_category       NVARCHAR(50)  NULL,   -- COMMISSION_CER, TRAINING_CER, FINGERPRINT...
+    file_name          NVARCHAR(255) NULL,
+    upload_date        DATETIME      NOT NULL DEFAULT GETDATE(),
+    verified_status    NVARCHAR(20)  NULL,   -- PENDING, APPROVED
+    version            INT           NOT NULL DEFAULT 1,
+    is_current_version BIT           NOT NULL DEFAULT 1,
+    file_url           NVARCHAR(500) NULL
+);
+END
+GO
+
+-- ── 13. Notary_insurances ──
+IF OBJECT_ID ('Notary_insurances', 'U') IS NULL
+BEGIN
+CREATE TABLE Notary_insurances (
+    id              INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id       INT            NOT NULL REFERENCES notaries (id),
+    policy_number   VARCHAR(50)    NULL,
+    provider_name   NVARCHAR(200)  NULL,
+    coverage_amount DECIMAL(18, 2) NULL,
+    expiration_date DATE           NULL,
+    file_url        NVARCHAR(500)  NULL
+);
+END
+GO
+
+-- ── 14. Notary_bonds ──
+IF OBJECT_ID ('Notary_bonds', 'U') IS NULL
+BEGIN
+CREATE TABLE Notary_bonds (
+    id              INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id       INT            NOT NULL REFERENCES notaries (id),
+    provider_name   NVARCHAR(200)  NULL,
+    bond_amount     DECIMAL(18, 2) NULL,
+    effective_date  DATE           NULL,
+    expiration_date DATE           NULL,
+    file_url        NVARCHAR(500)  NULL
+);
+END
+GO
+
+-- ── 15. Ron_technologies ──
+IF OBJECT_ID ('Ron_technologies', 'U') IS NULL
+BEGIN
+CREATE TABLE Ron_technologies (
+    id               INT PRIMARY KEY IDENTITY (1, 1),
+    capability_id    INT          NOT NULL REFERENCES notary_capabilities (id),
+    ron_camera_ready BIT          NOT NULL DEFAULT 0,
+    ron_internet_ready BIT        NOT NULL DEFAULT 0,
+    digital_status   NVARCHAR(50) NULL
+);
+END
+GO
+
+-- ── 16. Notary_status_history ──
+IF OBJECT_ID ('Notary_status_history', 'U') IS NULL
+BEGIN
+CREATE TABLE Notary_status_history (
+    id             INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id      INT          NOT NULL REFERENCES notaries (id),
+    status         NVARCHAR(20) NULL,
+    reason         NVARCHAR(MAX) NULL,
+    effective_date DATETIME     NOT NULL DEFAULT GETDATE(),
+    created_by     INT          NULL
+);
+END
+GO
+
+-- ── 17. Notary_incidents ──
+IF OBJECT_ID ('Notary_incidents', 'U') IS NULL
+BEGIN
+CREATE TABLE Notary_incidents (
+    id            INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id     INT           NOT NULL REFERENCES notaries (id),
+    incident_type NVARCHAR(100) NULL,
+    description   NVARCHAR(MAX) NULL,
+    severity      NVARCHAR(20)  NULL,   -- LOW, MEDIUM, HIGH, CRITICAL
+    status        NVARCHAR(20)  NULL,   -- OPEN, UNDER_REVIEW, RESOLVED
+    resolved_at   DATETIME      NULL
+);
+END
+GO
+
+-- ── 18. Notary_audit_logs ──
+IF OBJECT_ID ('Notary_audit_logs', 'U') IS NULL
+BEGIN
+CREATE TABLE Notary_audit_logs (
+    id         INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id  INT           NULL,
+    table_name VARCHAR(100)  NULL,
+    record_id  INT           NULL,
+    action     VARCHAR(20)   NULL,   -- INSERT, UPDATE, DELETE
+    old_value  NVARCHAR(MAX) NULL,
+    new_value  NVARCHAR(MAX) NULL,
+    change_by  INT           NULL,
+    created_at DATETIME      NOT NULL DEFAULT GETDATE()
+);
+END
+GO
+
+-- ── Seed: States ──
+IF NOT EXISTS (SELECT 1 FROM States)
+BEGIN
+SET IDENTITY_INSERT States ON;
+INSERT INTO States (id, state_code, state_name) VALUES
+    (1,  'AL', 'Alabama'),
+    (2,  'AK', 'Alaska'),
+    (3,  'AZ', 'Arizona'),
+    (4,  'AR', 'Arkansas'),
+    (5,  'CA', 'California'),
+    (6,  'CO', 'Colorado'),
+    (7,  'CT', 'Connecticut'),
+    (8,  'DE', 'Delaware'),
+    (9,  'FL', 'Florida'),
+    (10, 'GA', 'Georgia'),
+    (11, 'HI', 'Hawaii'),
+    (12, 'ID', 'Idaho'),
+    (13, 'IL', 'Illinois'),
+    (14, 'IN', 'Indiana'),
+    (15, 'IA', 'Iowa'),
+    (16, 'KS', 'Kansas'),
+    (17, 'KY', 'Kentucky'),
+    (18, 'LA', 'Louisiana'),
+    (19, 'ME', 'Maine'),
+    (20, 'MD', 'Maryland'),
+    (21, 'MA', 'Massachusetts'),
+    (22, 'MI', 'Michigan'),
+    (23, 'MN', 'Minnesota'),
+    (24, 'MS', 'Mississippi'),
+    (25, 'MO', 'Missouri'),
+    (26, 'MT', 'Montana'),
+    (27, 'NE', 'Nebraska'),
+    (28, 'NV', 'Nevada'),
+    (29, 'NH', 'New Hampshire'),
+    (30, 'NJ', 'New Jersey'),
+    (31, 'NM', 'New Mexico'),
+    (32, 'NY', 'New York'),
+    (33, 'NC', 'North Carolina'),
+    (34, 'ND', 'North Dakota'),
+    (35, 'OH', 'Ohio'),
+    (36, 'OK', 'Oklahoma'),
+    (37, 'OR', 'Oregon'),
+    (38, 'PA', 'Pennsylvania'),
+    (39, 'RI', 'Rhode Island'),
+    (40, 'SC', 'South Carolina'),
+    (41, 'SD', 'South Dakota'),
+    (42, 'TN', 'Tennessee'),
+    (43, 'TX', 'Texas'),
+    (44, 'UT', 'Utah'),
+    (45, 'VT', 'Vermont'),
+    (46, 'VA', 'Virginia'),
+    (47, 'WA', 'Washington'),
+    (48, 'WV', 'West Virginia'),
+    (49, 'WI', 'Wisconsin'),
+    (50, 'WY', 'Wyoming');
+SET IDENTITY_INSERT States OFF;
 END
 
 -- ── Seed: notaries ──
@@ -560,32 +775,26 @@ VALUES (
 -- completed
 END
 
-SELECT 'notaries' AS [Table], COUNT(*) AS [Rows]
-FROM notaries
-UNION ALL
-SELECT 'notary_capabilities', COUNT(*)
-FROM notary_capabilities
-UNION ALL
-SELECT 'notary_availabilities', COUNT(*)
-FROM notary_availabilities
-UNION ALL
-SELECT 'notary_service_areas', COUNT(*)
-FROM notary_service_areas
-UNION ALL
-SELECT 'Job', COUNT(*)
-FROM Job
-UNION ALL
-SELECT 'job assignments', COUNT(*)
-FROM [job assignments]
-UNION ALL
-SELECT 'job_status_logs', COUNT(*)
-FROM job_status_logs
-UNION ALL
-SELECT 'events', COUNT(*)
-FROM events
-UNION ALL
-SELECT 'notifications', COUNT(*)
-FROM notifications;
+SELECT 'States'                AS [Table], COUNT(*) AS [Rows] FROM States
+UNION ALL SELECT 'Languages',               COUNT(*) FROM Languages
+UNION ALL SELECT 'notaries',                COUNT(*) FROM notaries
+UNION ALL SELECT 'Notary_commissions',      COUNT(*) FROM Notary_commissions
+UNION ALL SELECT 'Authority_scope',         COUNT(*) FROM Authority_scope
+UNION ALL SELECT 'Notary_documents',        COUNT(*) FROM Notary_documents
+UNION ALL SELECT 'Notary_insurances',       COUNT(*) FROM Notary_insurances
+UNION ALL SELECT 'Notary_bonds',            COUNT(*) FROM Notary_bonds
+UNION ALL SELECT 'notary_capabilities',     COUNT(*) FROM notary_capabilities
+UNION ALL SELECT 'Ron_technologies',        COUNT(*) FROM Ron_technologies
+UNION ALL SELECT 'notary_service_areas',    COUNT(*) FROM notary_service_areas
+UNION ALL SELECT 'notary_availabilities',   COUNT(*) FROM notary_availabilities
+UNION ALL SELECT 'Notary_status_history',   COUNT(*) FROM Notary_status_history
+UNION ALL SELECT 'Notary_incidents',        COUNT(*) FROM Notary_incidents
+UNION ALL SELECT 'Notary_audit_logs',       COUNT(*) FROM Notary_audit_logs
+UNION ALL SELECT 'Job',                     COUNT(*) FROM Job
+UNION ALL SELECT 'job assignments',         COUNT(*) FROM [job assignments]
+UNION ALL SELECT 'job_status_logs',         COUNT(*) FROM job_status_logs
+UNION ALL SELECT 'events',                  COUNT(*) FROM events
+UNION ALL SELECT 'notifications',           COUNT(*) FROM notifications;
 GO
 
 PRINT 'notarial_db khởi tạo thành công!';

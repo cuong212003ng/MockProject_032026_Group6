@@ -1,28 +1,31 @@
 const sql = require('mssql');
 require('dotenv').config();
 
-const dbConfig = {
-  server: process.env.DB_SERVER,
-  port: parseInt(process.env.DB_PORT),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+const dbServer = process.env.DB_SERVER || 'localhost';
+const [host, instance] = dbServer.split('\\');
+
+const config = {
+  user: process.env.DB_USER || 'sa',
+  password: process.env.DB_PASSWORD || '123456',
+  server: host,
+  database: process.env.DB_NAME || 'notarial_db',
   options: {
-    encrypt: true,
+    encrypt: false,
     trustServerCertificate: true,
-  },
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000,
+    instanceName: instance || process.env.DB_INSTANCE || undefined,
   },
 };
 
-let pool = null;
+// Nếu không dùng Named Instance thì mới dùng static port
+if (!config.options.instanceName) {
+  config.port = parseInt(process.env.DB_PORT) || 1433;
+}
+
+const pool = new sql.ConnectionPool(config);
 
 const getPool = async () => {
-  if (!pool) {
-    pool = await sql.connect(dbConfig);
+  if (!pool.connected) {
+    await pool.connect();
   }
   return pool;
 };
@@ -45,12 +48,12 @@ const testConnection = async () => {
     const p = await getPool();
     if (p.connected) {
       console.log('✅ [SQL Server] Connection established successfully!');
-      await p.request().query('SELECT 1'); 
+      await p.request().query('SELECT 1');
     }
   } catch (err) {
     console.error('❌ [SQL Server] Connection failed!');
     console.error('Error Details:', err.message);
-    console.log(`Server: ${process.env.DB_SERVER}, DB: ${process.env.DB_NAME}`);
+    console.log(`Server: ${config.server}, DB: ${config.database}`);
   }
 };
 
