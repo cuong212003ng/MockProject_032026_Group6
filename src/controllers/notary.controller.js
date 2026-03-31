@@ -42,11 +42,12 @@ const createNotary = async (req, res) => {
   }
 };
 
-// ─── 3. GET /api/v1/notaries/:id ─────────────────────────────────────────────
+// dev-trongtuan
+// ─── 3. GET /api/v1/notaries/:id (personal info + header fields) ────────────
 const getNotaryById = async (req, res) => {
   try {
     const { id } = req.params;
-    const notary = await notaryModel.findById(id);
+    const notary = await notaryModel.getPersonalInfoById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
     return sendSuccess(res, notary, 'Notary retrieved successfully');
   } catch (err) {
@@ -115,6 +116,7 @@ const getStatusHistory = async (req, res) => {
   }
 };
 
+// dev-trongtuan
 // ─── 8. GET /api/v1/notaries/:id/commissions ─────────────────────────────────
 const getCommissions = async (req, res) => {
   try {
@@ -122,7 +124,7 @@ const getCommissions = async (req, res) => {
     const notary = await notaryModel.findById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
 
-    const data = await notaryModel.getCommissions(id);
+    const data = await notaryModel.getCommissions(id, req.query);
     return sendSuccess(res, data, 'Commissions retrieved successfully');
   } catch (err) {
     console.error('[getCommissions]', err.message);
@@ -138,11 +140,12 @@ const createCommission = async (req, res) => {
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
 
     const result = await notaryModel.createCommission(id, req.body);
+    if (!result) return sendError(res, 'Commission state is invalid', 400);
     return sendSuccess(
       res,
       { id: `#${result.id}`, risk_status: result.risk_status },
       'Commission created successfully',
-      201
+      201,
     );
   } catch (err) {
     console.error('[createCommission]', err.message);
@@ -150,11 +153,12 @@ const createCommission = async (req, res) => {
   }
 };
 
-// ─── 10. PATCH /api/v1/notaries/:id/commissions/:cid ─────────────────────────
+// ─── 10. PUT /api/v1/notaries/:id/commissions/:commission_id ────────────────
 const updateCommission = async (req, res) => {
   try {
-    const { cid } = req.params;
-    const result = await notaryModel.updateCommission(cid, req.body);
+    const { commission_id: commissionId } = req.params;
+    const result = await notaryModel.updateCommission(commissionId, req.body);
+    if (!result) return sendError(res, 'Commission state is invalid', 400);
     return sendSuccess(res, result, 'Commission updated successfully');
   } catch (err) {
     console.error('[updateCommission]', err.message);
@@ -341,10 +345,36 @@ const createIncident = async (req, res) => {
   }
 };
 
+// dev-trongtuan
+const updatePersonalInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await notaryModel.updatePersonalInfo(id, req.body);
+    if (!result) return sendError(res, `Notary #${id} not found`, 404);
+    return sendSuccess(res, result, 'Personal information updated successfully');
+  } catch (err) {
+    console.error('[updatePersonalInfo]', err.message);
+    return sendError(res, 'Failed to update personal information', 500);
+  }
+};
+
+const deleteCommission = async (req, res) => {
+  try {
+    const { id, commission_id: commissionId } = req.params;
+    const result = await notaryModel.deleteCommission(id, commissionId);
+    if (!result) return sendError(res, `Commission #${commissionId} not found`, 404);
+    return sendSuccess(res, result, 'Commission deleted successfully');
+  } catch (err) {
+    console.error('[deleteCommission]', err.message);
+    return sendError(res, 'Failed to delete commission', 500);
+  }
+};
+
 module.exports = {
   getNotaryList,
   createNotary,
   getNotaryById,
+  updatePersonalInfo,
   updateBio,
   toggleStatus,
   getOverview,
@@ -352,6 +382,7 @@ module.exports = {
   getCommissions,
   createCommission,
   updateCommission,
+  deleteCommission,
   getCompliance,
   updateCompliance,
   getCapabilities,

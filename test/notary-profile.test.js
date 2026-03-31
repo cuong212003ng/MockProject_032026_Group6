@@ -147,6 +147,7 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
 
     assert.equal(response.statusCode, 401);
     assert.deepEqual(response.body, {
+      success: false,
       status: 'error',
       message: 'Access token is required',
       data: null,
@@ -190,9 +191,9 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
       .set('Authorization', `Bearer ${userOwnToken}`)
       .field('document_type', 'COMMISSION_CER');
 
-    assert.equal(response.statusCode, 422);
-    assert.equal(response.body.status, 'error');
-    assert.equal(response.body.message, 'file is required');
+    assert.equal(response.statusCode, 400);
+    assert.equal(response.body.success, false);
+    assert.match(response.body.message, /file is required/i);
   });
 
   await t.test('upload rejects unsupported file type', async () => {
