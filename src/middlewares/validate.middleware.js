@@ -8,15 +8,11 @@ const INCIDENT_SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const handleValidation = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return sendError(
-      res,
-      errors
-        .array()
-        .map((error) => error.msg)
-        .join(', '),
-      422,
-      errors.array(),
-    );
+    const firstError = errors.array()[0]?.msg || 'Invalid request';
+    return res.status(400).json({
+      success: false,
+      message: `Validation failed: ${firstError}`,
+    });
   }
 
   next();
@@ -37,7 +33,10 @@ const validateDateRange = (fromField, toField) => (req, res, next) => {
 
 const requireUploadedFile = (req, res, next) => {
   if (!req.file) {
-    return sendError(res, 'file is required', 422, [{ path: 'file', msg: 'file is required' }]);
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed: file is required',
+    });
   }
 
   next();
@@ -53,9 +52,10 @@ const normalizeDocumentUploadPayload = (req, res, next) => {
 
 const requireDocumentType = (req, res, next) => {
   if (!req.body.document_type) {
-    return sendError(res, 'document_type is required', 422, [
-      { path: 'document_type', msg: 'document_type is required' },
-    ]);
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed: document_type is required',
+    });
   }
 
   next();
