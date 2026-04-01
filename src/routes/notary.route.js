@@ -20,11 +20,10 @@ const {
   validateBioUpdate,
   validateToggleStatus,
   validatePersonalInfoUpdate,
-  validateCommissionListQuery,
-  validateCommissionPayload,
-  validateCommissionUpdatePayload,
   validateNotaryAndCommissionIdParams,
 } = require('../middlewares/validate.middleware');
+
+// router.use(authenticate); // TODO: bật lại khi deploy
 
 router.use(authenticate);
 router.use(attachAuditContext);
@@ -135,7 +134,7 @@ router.post('/', authorize('ADMIN'), notaryController.createNotary);
  * @swagger
  * /api/v1/notaries/{id}:
  *   get:
- *     summary: SC_003 - Get notary personal information
+ *     summary: Get notary profile by ID
  *     tags: [Notaries]
  *     security:
  *       - bearerAuth: []
@@ -147,45 +146,7 @@ router.post('/', authorize('ADMIN'), notaryController.createNotary);
  *           type: integer
  *     responses:
  *       200:
- *         description: Notary personal info with header fields
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: Notary retrieved successfully
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     first_name:
- *                       type: string
- *                     last_name:
- *                       type: string
- *                     dob:
- *                       type: string
- *                       format: date
- *                     email:
- *                       type: string
- *                       format: email
- *                     phone:
- *                       type: string
- *                     address:
- *                       type: object
- *                     rating:
- *                       type: number
- *                     status:
- *                       type: string
- *                     avatar_url:
- *                       type: string
- *                     notary_code:
- *                       type: string
+ *         description: Notary profile
  *       404:
  *         description: Not found
  */
@@ -256,7 +217,12 @@ router.patch('/:id/bio', authorize('ADMIN'), validateBioUpdate, notaryController
  *       200:
  *         description: Status toggled
  */
-router.patch('/:id/status', authorize('ADMIN'), validateToggleStatus, notaryController.toggleStatus);
+router.patch(
+  '/:id/status',
+  authorize('ADMIN'),
+  validateToggleStatus,
+  notaryController.toggleStatus,
+);
 
 /**
  * @swagger
@@ -276,7 +242,12 @@ router.patch('/:id/status', authorize('ADMIN'), validateToggleStatus, notaryCont
  *       200:
  *         description: KPI overview data
  */
-router.get('/:id/overview', authorize('ADMIN'), validateNotaryIdParam, notaryController.getOverview);
+router.get(
+  '/:id/overview',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getOverview,
+);
 
 /**
  * @swagger
@@ -296,7 +267,193 @@ router.get('/:id/overview', authorize('ADMIN'), validateNotaryIdParam, notaryCon
  *       200:
  *         description: Status history list
  */
-router.get('/:id/status-history', authorize('ADMIN'), validateNotaryIdParam, notaryController.getStatusHistory);
+router.get(
+  '/:id/status-history',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getStatusHistory,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/personal-info:
+ * patch:
+ * summary: Update notary personal info (SC003)
+ * tags: [Notaries]
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: integer
+ * requestBody:
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * first_name:
+ * type: string
+ * last_name:
+ * type: string
+ * dob:
+ * type: string
+ * format: date
+ * email:
+ * type: string
+ * phone:
+ * type: string
+ * address:
+ * type: string
+ * responses:
+ * 200:
+ * description: Personal info updated
+ * 404:
+ * description: Notary not found
+ */
+router.patch(
+  '/:id/personal-info',
+  authorize('ADMIN'),
+  validatePersonalInfoUpdate, // Xóa dòng này nếu team chưa viết middleware validate
+  notaryController.updatePersonalInfo,
+);
+
+// ── Legal / Commissions ───────────────────────────────────────────────────────
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/commissions:
+ *   get:
+ *     summary: Get notary commissions with risk status
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Commission list with risk_status (VALID | EXPIRING_SOON | EXPIRED)
+ */
+router.get(
+  '/:id/commissions',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getCommissions,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/commissions:
+ *   post:
+ *     summary: Create a new commission for a notary
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - commission_number
+ *               - issue_date
+ *               - expiration_date
+ *             properties:
+ *               commission_state_id:
+ *                 type: integer
+ *               commission_number:
+ *                 type: string
+ *               issue_date:
+ *                 type: string
+ *                 format: date
+ *               expiration_date:
+ *                 type: string
+ *                 format: date
+ *               is_renewal_applied:
+ *                 type: boolean
+ *               expected_renewal_date:
+ *                 type: string
+ *                 format: date
+ *               authority_types:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: Commission created
+ */
+router.post(
+  '/:id/commissions',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.createCommission,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/commissions/{cid}:
+ *   patch:
+ *     summary: Update a commission
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: cid
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               commission_number:
+ *                 type: string
+ *               issue_date:
+ *                 type: string
+ *                 format: date
+ *               expiration_date:
+ *                 type: string
+ *                 format: date
+ *               is_renewal_applied:
+ *                 type: boolean
+ *               expected_renewal_date:
+ *                 type: string
+ *                 format: date
+ *               authority_types:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Commission updated
+ */
+router.patch(
+  '/:id/commissions/:cid',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.updateCommission,
+);
 
 // ── Compliance (Bond & Insurance) ────────────────────────────────────────────
 
@@ -318,7 +475,12 @@ router.get('/:id/status-history', authorize('ADMIN'), validateNotaryIdParam, not
  *       200:
  *         description: Bond and insurance details with risk_status
  */
-router.get('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryController.getCompliance);
+router.get(
+  '/:id/compliance',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getCompliance,
+);
 
 /**
  * @swagger
@@ -367,7 +529,44 @@ router.get('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryC
  *       200:
  *         description: Compliance updated
  */
-router.put('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryController.updateCompliance);
+router.put(
+  '/:id/compliance',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.updateCompliance,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/commissions/{commission_id}:
+ * delete:
+ * summary: Delete a commission (SC004)
+ * tags: [Notaries]
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: integer
+ * - in: path
+ * name: commission_id
+ * required: true
+ * schema:
+ * type: integer
+ * responses:
+ * 200:
+ * description: Commission deleted
+ * 404:
+ * description: Commission not found
+ */
+router.delete(
+  '/:id/commissions/:commission_id',
+  authorize('ADMIN'),
+  validateNotaryAndCommissionIdParams, // Xóa dòng này nếu team chưa viết middleware validate
+  notaryController.deleteCommission,
+);
 
 // ── Capabilities ─────────────────────────────────────────────────────────────
 
@@ -389,7 +588,12 @@ router.put('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryC
  *       200:
  *         description: Capabilities and RON technology info
  */
-router.get('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, notaryController.getCapabilities);
+router.get(
+  '/:id/capabilities',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getCapabilities,
+);
 
 /**
  * @swagger
@@ -440,7 +644,12 @@ router.get('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, notar
  *       200:
  *         description: Capabilities updated
  */
-router.patch('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, notaryController.updateCapabilities);
+router.patch(
+  '/:id/capabilities',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.updateCapabilities,
+);
 
 // ── Schedule / Availability ───────────────────────────────────────────────────
 
@@ -462,7 +671,12 @@ router.patch('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, not
  *       200:
  *         description: Availability record
  */
-router.get('/:id/availability', authorize('ADMIN'), validateNotaryIdParam, notaryController.getAvailability);
+router.get(
+  '/:id/availability',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getAvailability,
+);
 
 /**
  * @swagger
@@ -499,7 +713,12 @@ router.get('/:id/availability', authorize('ADMIN'), validateNotaryIdParam, notar
  *       200:
  *         description: Availability set
  */
-router.post('/:id/availability', authorize('ADMIN'), validateNotaryIdParam, notaryController.setAvailability);
+router.post(
+  '/:id/availability',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.setAvailability,
+);
 
 // ── Documents ────────────────────────────────────────────────────────────────
 
@@ -776,333 +995,6 @@ router.post(
   authorize('ADMIN'),
   validateIncidentCreate,
   notaryController.createIncident,
-);
-
-// dev-trongtuan
-/**
- * @swagger
- * /api/v1/notaries/{id}/personal-info:
- *   put:
- *     summary: SC_003 - Update notary personal information
- *     tags: [Notaries]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               first_name:
- *                 type: string
- *               last_name:
- *                 type: string
- *               dob:
- *                 type: string
- *                 format: date
- *               email:
- *                 type: string
- *                 format: email
- *               phone:
- *                 type: string
- *               address:
- *                 type: object
- *                 properties:
- *                   street:
- *                     type: string
- *                   city:
- *                     type: string
- *                   state:
- *                     type: string
- *                   zip_code:
- *                     type: string
- *             example:
- *               first_name: John
- *               last_name: Doe
- *               dob: 1990-01-15
- *               email: john.doe@example.com
- *               phone: +1 (555) 123-4567
- *               address:
- *                 street: 123 Main St
- *                 city: Dallas
- *                 state: TX
- *                 zip_code: 75001
- *     responses:
- *       200:
- *         description: Personal information updated
- *       400:
- *         description: Validation failed
- */
-router.put(
-  '/:id/personal-info',
-  authorize('ADMIN'),
-  validatePersonalInfoUpdate,
-  notaryController.updatePersonalInfo,
-);
-
-/**
- * @swagger
- * /api/v1/notaries/{id}/commissions:
- *   get:
- *     summary: SC_004 - Get commissions list with filters and pagination
- *     tags: [Notaries]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [Valid, Not eligible, Expired]
- *       - in: query
- *         name: state
- *         schema:
- *           type: string
- *         description: State code or state name
- *       - in: query
- *         name: expiration_date
- *         schema:
- *           type: string
- *         description: Accepts YYYY-MM-DD or "<n> days left" (e.g. 30 days left)
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *         description: Keyword search for commission_number/state
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 10
- *     responses:
- *       200:
- *         description: Commission list retrieved
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     items:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           commission_id:
- *                             type: integer
- *                           commission_number:
- *                             type: string
- *                           state:
- *                             type: string
- *                           issue_date:
- *                             type: string
- *                             format: date
- *                           expiration_date:
- *                             type: string
- *                             format: date
- *                           risk:
- *                             type: string
- *                             enum: [Valid, Not eligible, Expired]
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         page:
- *                           type: integer
- *                         limit:
- *                           type: integer
- *                         total:
- *                           type: integer
- *                         total_pages:
- *                           type: integer
- *       400:
- *         description: Validation failed
- */
-router.get(
-  '/:id/commissions',
-  authorize('ADMIN'),
-  validateCommissionListQuery,
-  notaryController.getCommissions,
-);
-
-/**
- * @swagger
- * /api/v1/notaries/{id}/commissions:
- *   post:
- *     summary: SC_004 - Create a new commission
- *     tags: [Notaries]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - commission_number
- *               - state
- *               - issue_date
- *               - expiration_date
- *             properties:
- *               commission_number:
- *                 type: string
- *               state:
- *                 type: string
- *                 description: State code or state name; mapped to commission_state_id
- *               issue_date:
- *                 type: string
- *                 format: date
- *               expiration_date:
- *                 type: string
- *                 format: date
- *               is_renewal_applied:
- *                 type: boolean
- *               expected_renewal_date:
- *                 type: string
- *                 format: date
- *               authority_types:
- *                 type: array
- *                 items:
- *                   type: string
- *     responses:
- *       201:
- *         description: Commission created
- *       400:
- *         description: Validation failed (including issue_date must be before expiration_date)
- */
-router.post(
-  '/:id/commissions',
-  authorize('ADMIN'),
-  validateCommissionPayload,
-  notaryController.createCommission,
-);
-
-/**
- * @swagger
- * /api/v1/notaries/{id}/commissions/{commission_id}:
- *   put:
- *     summary: SC_004 - Update an existing commission
- *     tags: [Notaries]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *       - in: path
- *         name: commission_id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - commission_number
- *               - state
- *               - issue_date
- *               - expiration_date
- *             properties:
- *               commission_number:
- *                 type: string
- *               state:
- *                 type: string
- *                 description: State code or state name; mapped to commission_state_id
- *               issue_date:
- *                 type: string
- *                 format: date
- *               expiration_date:
- *                 type: string
- *                 format: date
- *               is_renewal_applied:
- *                 type: boolean
- *               expected_renewal_date:
- *                 type: string
- *                 format: date
- *               authority_types:
- *                 type: array
- *                 items:
- *                   type: string
- *     responses:
- *       200:
- *         description: Commission updated
- *       400:
- *         description: Validation failed (including issue_date must be before expiration_date)
- */
-router.put(
-  '/:id/commissions/:commission_id',
-  authorize('ADMIN'),
-  validateCommissionUpdatePayload,
-  notaryController.updateCommission,
-);
-
-/**
- * @swagger
- * /api/v1/notaries/{id}/commissions/{commission_id}:
- *   delete:
- *     summary: SC_004 - Delete a commission
- *     tags: [Notaries]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *       - in: path
- *         name: commission_id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Commission deleted
- *       404:
- *         description: Commission not found
- */
-router.delete(
-  '/:id/commissions/:commission_id',
-  authorize('ADMIN'),
-  validateNotaryAndCommissionIdParams,
-  notaryController.deleteCommission,
 );
 
 module.exports = router;

@@ -59,8 +59,37 @@ const toggleStatus = async ({ notaryId, isActive, actorId }) => {
   };
 };
 
+// ============================================================================
+// dev-trongtuan (SC003 & SC004)
+// ============================================================================
+const updatePersonalInfo = async ({ notaryId, changes, actorId }) => {
+  await getNotaryOrThrow(notaryId);
+
+  const result = await notaryModel.updatePersonalInfo(notaryId, changes);
+  if (!result || !result.updated) {
+    return { updated: false };
+  }
+
+  // Giữ Audit Log ở đây vì các hàm Profile khác (Bio, Status) đều có
+  await auditLogService.createAuditLog({
+    notaryId,
+    tableName: 'notaries',
+    recordId: notaryId,
+    action: 'UPDATE',
+    oldValue: result.previous,
+    newValue: result.current,
+    changedBy: actorId,
+  });
+
+  return {
+    updated: true,
+    data: result.current,
+  };
+};
+
 module.exports = {
   getNotaryOrThrow,
   updateBio,
   toggleStatus,
+  updatePersonalInfo,
 };

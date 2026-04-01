@@ -104,7 +104,7 @@ const assignJob = async (req, res) => {
         accepted_at: null,
       },
       'Job assigned successfully',
-      201
+      201,
     );
   } catch (error) {
     console.error('[assignJob]', error.message);
@@ -129,7 +129,7 @@ const acceptJob = async (req, res) => {
         assignment_id: result.assignment_id,
         accepted_at: result.accepted_at,
       },
-      'Job accepted successfully'
+      'Job accepted successfully',
     );
   } catch (error) {
     console.error('[acceptJob]', error.message);
@@ -145,11 +145,7 @@ const updateJobStatus = async (req, res) => {
 
     const VALID_STATUSES = ['Pending', 'Assigned', 'Completed', 'Cancelled'];
     if (!Status || !VALID_STATUSES.includes(Status)) {
-      return sendError(
-        res,
-        `Status must be one of: ${VALID_STATUSES.join(', ')}`,
-        400
-      );
+      return sendError(res, `Status must be one of: ${VALID_STATUSES.join(', ')}`, 400);
     }
 
     const job = await jobModel.findById(id);

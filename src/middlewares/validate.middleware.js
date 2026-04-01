@@ -8,11 +8,15 @@ const INCIDENT_SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const handleValidation = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const firstError = errors.array()[0]?.msg || 'Invalid request';
-    return res.status(400).json({
-      success: false,
-      message: `Validation failed: ${firstError}`,
-    });
+    return sendError(
+      res,
+      errors
+        .array()
+        .map((error) => error.msg)
+        .join(', '),
+      422,
+      errors.array(),
+    );
   }
 
   next();
@@ -23,10 +27,9 @@ const validateDateRange = (fromField, toField) => (req, res, next) => {
   const toDate = req.query[toField];
 
   if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
-    return res.status(400).json({
-      success: false,
-      message: `Validation failed: ${fromField} must be earlier than or equal to ${toField}`,
-    });
+    return sendError(res, `${fromField} must be earlier than or equal to ${toField}`, 422, [
+      { path: fromField, msg: `${fromField} must be earlier than or equal to ${toField}` },
+    ]);
   }
 
   next();
@@ -34,10 +37,7 @@ const validateDateRange = (fromField, toField) => (req, res, next) => {
 
 const requireUploadedFile = (req, res, next) => {
   if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed: file is required',
-    });
+    return sendError(res, 'file is required', 422, [{ path: 'file', msg: 'file is required' }]);
   }
 
   next();
@@ -53,10 +53,9 @@ const normalizeDocumentUploadPayload = (req, res, next) => {
 
 const requireDocumentType = (req, res, next) => {
   if (!req.body.document_type) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed: document_type is required',
-    });
+    return sendError(res, 'document_type is required', 422, [
+      { path: 'document_type', msg: 'document_type is required' },
+    ]);
   }
 
   next();
@@ -119,7 +118,11 @@ const validateDocumentListQuery = [
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('limit must be between 1 and 100'),
-  query('document_type').optional().trim().notEmpty().withMessage('document_type must not be empty'),
+  query('document_type')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('document_type must not be empty'),
   query('status').optional().isIn(DOCUMENT_STATUSES).withMessage('Invalid document status'),
   query('from_date').optional().isISO8601().withMessage('from_date must be a valid ISO date'),
   query('to_date').optional().isISO8601().withMessage('to_date must be a valid ISO date'),
@@ -139,7 +142,9 @@ const validateDocumentUpload = [
 const validateDocumentVerification = [
   param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
   param('docId').isInt({ min: 1 }).withMessage('docId must be a positive integer'),
-  body('status').isIn(DOCUMENT_STATUSES).withMessage('status must be PENDING, APPROVED, or REJECTED'),
+  body('status')
+    .isIn(DOCUMENT_STATUSES)
+    .withMessage('status must be PENDING, APPROVED, or REJECTED'),
   handleValidation,
 ];
 
@@ -180,7 +185,10 @@ const validateBioUpdate = [
   param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
   body('phone').optional().isString().withMessage('phone must be a string'),
   body('email').optional().isEmail().withMessage('email must be a valid email'),
-  body('residential_address').optional().isString().withMessage('residential_address must be a string'),
+  body('residential_address')
+    .optional()
+    .isString()
+    .withMessage('residential_address must be a string'),
   body('internal_notes').optional().isString().withMessage('internal_notes must be a string'),
   body('photo_url').optional().isString().withMessage('photo_url must be a string'),
   handleValidation,
@@ -195,9 +203,7 @@ const validateToggleStatus = [
 // dev-trongtuan
 const validateNotaryAndCommissionIdParams = [
   param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
-  param('commission_id')
-    .isInt({ min: 1 })
-    .withMessage('commission_id must be a positive integer'),
+  param('commission_id').isInt({ min: 1 }).withMessage('commission_id must be a positive integer'),
   handleValidation,
 ];
 
@@ -253,11 +259,7 @@ const validatePersonalInfoUpdate = [
 
 const validateCommissionListQuery = [
   param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('page must be a positive integer')
-    .toInt(),
+  query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer').toInt(),
   query('limit')
     .optional()
     .isInt({ min: 1, max: 100 })
@@ -280,7 +282,12 @@ const validateCommissionListQuery = [
     .trim()
     .matches(/^(\d+\s*days?\s*left|\d{4}-\d{2}-\d{2})$/i)
     .withMessage('expiration_date must be YYYY-MM-DD or "<n> days left"'),
-  query('search').optional().trim().escape().isLength({ max: 100 }).withMessage('search is too long'),
+  query('search')
+    .optional()
+    .trim()
+    .escape()
+    .isLength({ max: 100 })
+    .withMessage('search is too long'),
   handleValidation,
 ];
 
@@ -323,9 +330,7 @@ const validateCommissionPayload = [
 
 const validateCommissionUpdatePayload = [
   param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
-  param('commission_id')
-    .isInt({ min: 1 })
-    .withMessage('commission_id must be a positive integer'),
+  param('commission_id').isInt({ min: 1 }).withMessage('commission_id must be a positive integer'),
   body('commission_number')
     .notEmpty()
     .withMessage('commission_number is required')
