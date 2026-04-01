@@ -1202,6 +1202,7 @@ const getCommissions = async (notaryId, filters = {}) => {
   const whereClauses = ['nc.notary_id = @notaryId'];
   const params = { notaryId, offset, limit: normalizedLimit };
 
+  // ... (Giữ nguyên logic filter search, state, expiration_date của bạn) ...
   if (state) {
     whereClauses.push('(s.state_code = @state OR s.state_name LIKE @stateLike)');
     params.state = state;
@@ -1336,11 +1337,9 @@ module.exports = {
   findAll,
   findById,
   findByUserId,
-  getPersonalInfoById,
   create,
   insertAuditLog,
   updateBio,
-  updatePersonalInfo,
   toggleStatus,
   getOverview,
   getStatusHistory,

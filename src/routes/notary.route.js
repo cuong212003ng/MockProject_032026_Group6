@@ -20,11 +20,10 @@ const {
   validateBioUpdate,
   validateToggleStatus,
   validatePersonalInfoUpdate,
-  validateCommissionListQuery,
-  validateCommissionPayload,
-  validateCommissionUpdatePayload,
   validateNotaryAndCommissionIdParams,
 } = require('../middlewares/validate.middleware');
+
+// router.use(authenticate); // TODO: bật lại khi deploy
 
 router.use(authenticate);
 router.use(attachAuditContext);
@@ -135,7 +134,7 @@ router.post('/', authorize('ADMIN'), notaryController.createNotary);
  * @swagger
  * /api/v1/notaries/{id}:
  *   get:
- *     summary: SC_003 - Get notary personal information
+ *     summary: Get notary profile by ID
  *     tags: [Notaries]
  *     security:
  *       - bearerAuth: []
@@ -147,45 +146,7 @@ router.post('/', authorize('ADMIN'), notaryController.createNotary);
  *           type: integer
  *     responses:
  *       200:
- *         description: Notary personal info with header fields
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: Notary retrieved successfully
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     first_name:
- *                       type: string
- *                     last_name:
- *                       type: string
- *                     dob:
- *                       type: string
- *                       format: date
- *                     email:
- *                       type: string
- *                       format: email
- *                     phone:
- *                       type: string
- *                     address:
- *                       type: object
- *                     rating:
- *                       type: number
- *                     status:
- *                       type: string
- *                     avatar_url:
- *                       type: string
- *                     notary_code:
- *                       type: string
+ *         description: Notary profile
  *       404:
  *         description: Not found
  */
