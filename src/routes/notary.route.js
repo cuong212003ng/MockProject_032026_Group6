@@ -518,6 +518,10 @@ router.get('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, notar
  *                       type: integer
  *                     county_name:
  *                       type: string
+ *               languages:
+ *                 type: array
+ *                 items:
+ *                   type: integer
  *     responses:
  *       200:
  *         description: Capabilities updated
@@ -577,6 +581,11 @@ router.get('/:id/availability', authorize('ADMIN'), validateNotaryIdParam, notar
  *               fixed_days_off:
  *                 type: string
  *                 example: 'Saturday,Sunday'
+ *               blackout_dates:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: date
  *     responses:
  *       200:
  *         description: Availability set

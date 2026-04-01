@@ -551,10 +551,19 @@ const getCapabilities = async (notaryId) => {
     { notaryId },
   );
 
+  const langResult = await query(
+    `SELECT nl.language_id, l.lang_name
+     FROM notary_languages nl
+     INNER JOIN Languages l ON l.id = nl.language_id
+     WHERE nl.notary_id = @notaryId`,
+    { notaryId },
+  );
+
   return {
     ...cap,
     ron_tech: ronResult.recordset[0] || null,
     service_areas: areaResult.recordset,
+    languages: langResult.recordset,
   };
 };
 
@@ -570,6 +579,7 @@ const updateCapabilities = async (notaryId, data) => {
     ron_internet_ready,
     digital_status,
     service_areas,
+    languages,
   } = data;
 
   const existCap = await query('SELECT id FROM notary_capabilities WHERE notary_id = @notaryId', {
@@ -663,6 +673,18 @@ const updateCapabilities = async (notaryId, data) => {
     }
   }
 
+  // Languages replace
+  if (Array.isArray(languages)) {
+    await query('DELETE FROM notary_languages WHERE notary_id = @notaryId', { notaryId });
+    for (const langId of languages) {
+      await query(
+        `INSERT INTO notary_languages (notary_id, language_id)
+         VALUES (@notaryId, @langId)`,
+        { notaryId, langId },
+      );
+    }
+  }
+
   return { status: 'success' };
 };
 
@@ -673,12 +695,24 @@ const getAvailability = async (notaryId) => {
      FROM notary_availabilities WHERE notary_id = @notaryId`,
     { notaryId },
   );
-  return result.recordset[0] || null;
+
+  const blackoutResult = await query(
+    `SELECT blackout_date
+     FROM notary_blackout_dates WHERE notary_id = @notaryId`,
+    { notaryId },
+  );
+
+  const availability = result.recordset[0] || null;
+  if (availability) {
+    availability.blackout_dates = blackoutResult.recordset.map(row => row.blackout_date);
+  }
+
+  return availability;
 };
 
 // ─── 16. Cài đặt Availability (UPSERT) ──────────────────────────────────────
 const setAvailability = async (notaryId, data) => {
-  const { working_days_per_week, start_time, end_time, fixed_days_off } = data;
+  const { working_days_per_week, start_time, end_time, fixed_days_off, blackout_dates } = data;
 
   const exist = await query('SELECT id FROM notary_availabilities WHERE notary_id = @notaryId', {
     notaryId,
@@ -713,6 +747,18 @@ const setAvailability = async (notaryId, data) => {
         fixedOff: fixed_days_off || null,
       },
     );
+  }
+
+  // Blackout dates replace
+  if (Array.isArray(blackout_dates)) {
+    await query('DELETE FROM notary_blackout_dates WHERE notary_id = @notaryId', { notaryId });
+    for (const date of blackout_dates) {
+      await query(
+        `INSERT INTO notary_blackout_dates (notary_id, blackout_date)
+         VALUES (@notaryId, @date)`,
+        { notaryId, date },
+      );
+    }
   }
 
   return { status: 'success' };
