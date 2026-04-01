@@ -70,7 +70,6 @@ const updatePersonalInfo = async ({ notaryId, changes, actorId }) => {
     return { updated: false };
   }
 
-  // Giữ Audit Log ở đây vì các hàm Profile khác (Bio, Status) đều có
   await auditLogService.createAuditLog({
     notaryId,
     tableName: 'notaries',

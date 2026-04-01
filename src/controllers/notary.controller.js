@@ -2,6 +2,7 @@ const notaryModel = require('../models/notary.model');
 const documentService = require('../services/document.service');
 const auditService = require('../services/audit.service');
 const notaryProfileService = require('../services/notary-profile.service');
+const commissionService = require('../services/commission.service');
 const { isAppError } = require('../utils/app-error');
 const { sendSuccess, sendError } = require('../utils/response.helper');
 
@@ -350,26 +351,30 @@ const createIncident = async (req, res) => {
 // dev-trongtuan (SC003 & SC004)
 // ============================================================================
 
-//SC003: Personal Info
+// ─── SC003: Personal Info ───────────────────────────────────────────────────
 const updatePersonalInfo = async (req, res) => {
-  const { id } = req.params;
-
-  const result = await notaryProfileService.updatePersonalInfo({
-    notaryId: id,
-    changes: req.body,
-    actorId: req.auditContext?.actorId || req.user?.id || null,
-  });
-
-  return sendSuccess(res, result, 'Personal information updated successfully');
+  try {
+    const { id } = req.params;
+    const result = await notaryProfileService.updatePersonalInfo({
+      notaryId: id,
+      changes: req.body,
+      actorId: req.auditContext?.actorId || req.user?.id || null,
+    });
+    return sendSuccess(res, result, 'Personal information updated successfully');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to update personal info', 'updatePersonalInfo');
+  }
 };
 
 // ─── SC004: Delete Commission ───────────────────────────────────────────────
 const deleteCommission = async (req, res) => {
-  const { id, commission_id } = req.params;
-  const result = await commissionService.deleteCommission(id, commission_id);
-
-  if (!result) return sendError(res, `Commission #${commission_id} not found`, 404);
-  return sendSuccess(res, result, 'Commission deleted successfully');
+  try {
+    const { id, commission_id } = req.params;
+    const result = await commissionService.deleteCommission(id, commission_id);
+    return sendSuccess(res, result, 'Commission deleted successfully');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to delete commission', 'deleteCommission');
+  }
 };
 
 module.exports = {

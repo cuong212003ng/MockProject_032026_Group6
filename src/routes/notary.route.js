@@ -310,13 +310,11 @@ router.get(
  * responses:
  * 200:
  * description: Personal info updated
- * 404:
- * description: Notary not found
  */
 router.patch(
   '/:id/personal-info',
   authorize('ADMIN'),
-  validatePersonalInfoUpdate, // Xóa dòng này nếu team chưa viết middleware validate
+  validatePersonalInfoUpdate,
   notaryController.updatePersonalInfo,
 );
 
@@ -564,10 +562,9 @@ router.put(
 router.delete(
   '/:id/commissions/:commission_id',
   authorize('ADMIN'),
-  validateNotaryAndCommissionIdParams, // Xóa dòng này nếu team chưa viết middleware validate
+  validateNotaryAndCommissionIdParams,
   notaryController.deleteCommission,
 );
-
 // ── Capabilities ─────────────────────────────────────────────────────────────
 
 /**
