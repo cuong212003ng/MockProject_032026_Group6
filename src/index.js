@@ -7,6 +7,7 @@ const swaggerSpec = require('./config/swagger');
 const authRoute = require('./routes/auth.route');
 const jobRoute = require('./routes/job.route');
 const notaryRoute = require('./routes/notary.route');
+const crmRoute = require('./routes/crm.route');
 const { sendSuccess, sendError } = require('./utils/response.helper');
 
 const app = express();
@@ -18,6 +19,7 @@ app.use('/uploads', express.static(path.resolve(env.uploadDir)));
 app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/scheduling', jobRoute);
 app.use('/api/v1/notaries', notaryRoute);
+app.use('/api/v1/crm', crmRoute);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/api-docs.json', (req, res) => {
