@@ -435,6 +435,9 @@ router.get('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryC
  *                 type: string
  *               ins_coverage:
  *                 type: number
+ *               ins_effective_date:
+ *                 type: string
+ *                 format: date
  *               ins_expiry:
  *                 type: string
  *                 format: date

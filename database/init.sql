@@ -805,5 +805,8 @@ UNION ALL SELECT 'events',                  COUNT(*) FROM events
 UNION ALL SELECT 'notifications',           COUNT(*) FROM notifications;
 GO
 
+ALTER TABLE Notary_insurances
+ADD effective_date DATE NULL;
+
 PRINT 'notarial_db khởi tạo thành công!';
 GO

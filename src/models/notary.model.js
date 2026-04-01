@@ -406,7 +406,7 @@ const updateCommission = async (commId, data) => {
 // ─── 11. Xem Compliance (Bond + Insurance) ───────────────────────────────────
 const getCompliance = async (notaryId) => {
   const insResult = await query(
-    `SELECT id, policy_number, provider_name, coverage_amount, expiration_date, file_url
+    `SELECT id, policy_number, provider_name, coverage_amount, effective_date, expiration_date, file_url
      FROM Notary_insurances WHERE notary_id = @notaryId`,
     { notaryId },
   );
@@ -438,6 +438,7 @@ const updateCompliance = async (notaryId, data) => {
     bond_file_url,
     ins_provider,
     ins_coverage,
+    ins_effective_date,
     ins_expiry,
     ins_policy_number,
     ins_file_url,
@@ -491,6 +492,7 @@ const updateCompliance = async (notaryId, data) => {
            policy_number = COALESCE(@policy, policy_number),
            provider_name = COALESCE(@provider, provider_name),
            coverage_amount = COALESCE(@coverage, coverage_amount),
+           effective_date = COALESCE(@effectiveDate, effective_date),
            expiration_date = COALESCE(@expiry, expiration_date),
            file_url = COALESCE(@fileUrl, file_url)
          WHERE notary_id = @notaryId`,
@@ -499,19 +501,21 @@ const updateCompliance = async (notaryId, data) => {
           policy: ins_policy_number || null,
           provider: ins_provider || null,
           coverage: ins_coverage || null,
+          effectiveDate: ins_effective_date || null,
           expiry: ins_expiry || null,
           fileUrl: ins_file_url || null,
         },
       );
     } else {
       await query(
-        `INSERT INTO Notary_insurances (notary_id, policy_number, provider_name, coverage_amount, expiration_date, file_url)
-         VALUES (@notaryId, @policy, @provider, @coverage, @expiry, @fileUrl)`,
+        `INSERT INTO Notary_insurances (notary_id, policy_number, provider_name, coverage_amount, effective_date, expiration_date, file_url)
+         VALUES (@notaryId, @policy, @provider, @coverage, @effectiveDate, @expiry, @fileUrl)`,
         {
           notaryId,
           policy: ins_policy_number || null,
           provider: ins_provider || null,
           coverage: ins_coverage || null,
+          effectiveDate: ins_effective_date || null,
           expiry: ins_expiry || null,
           fileUrl: ins_file_url || null,
         },
