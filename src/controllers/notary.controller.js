@@ -143,7 +143,7 @@ const createCommission = async (req, res) => {
     const notary = await notaryModel.findById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
 
-    const result = await notaryModel.createCommission(id, req.body);
+    const result = await commissionService.createCommission(id, req.body);
     return sendSuccess(
       res,
       { id: `#${result.id}`, risk_status: result.risk_status },
@@ -159,8 +159,8 @@ const createCommission = async (req, res) => {
 // ─── 10. PATCH /api/v1/notaries/:id/commissions/:cid ─────────────────────────
 const updateCommission = async (req, res) => {
   try {
-    const { cid } = req.params;
-    const result = await notaryModel.updateCommission(cid, req.body);
+    const { id, cid } = req.params;
+    const result = await commissionService.updateCommission(id, cid, req.body);
     return sendSuccess(res, result, 'Commission updated successfully');
   } catch (err) {
     console.error('[updateCommission]', err.message);
@@ -371,6 +371,7 @@ const deleteCommission = async (req, res) => {
   try {
     const { id, commission_id } = req.params;
     const result = await commissionService.deleteCommission(id, commission_id);
+    if (!result) return sendError(res, 'Commission not found', 404);
     return sendSuccess(res, result, 'Commission deleted successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to delete commission', 'deleteCommission');

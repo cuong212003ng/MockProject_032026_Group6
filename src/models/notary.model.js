@@ -277,6 +277,127 @@ const getStatusHistory = async (id) => {
   return result.recordset;
 };
 
+// ─── 8. Danh sách Commission ─────────────────────────────────────────────────
+// const getCommissions = async (notaryId) => {
+//   const commResult = await query(
+//     `SELECT
+//        nc.id, nc.notary_id, nc.commission_number, nc.issue_date, nc.expiration_date,
+//        nc.status, nc.is_renewal_applied, nc.expected_renewal_date,
+//        s.state_code, s.state_name
+//      FROM Notary_commissions nc
+//      LEFT JOIN States s ON s.id = nc.commission_state_id
+//      WHERE nc.notary_id = @notaryId
+//      ORDER BY nc.issue_date DESC`,
+//     { notaryId },
+//   );
+
+//   const commissions = commResult.recordset;
+
+//   for (const comm of commissions) {
+//     comm.risk_status = computeRiskStatus(comm.expiration_date);
+
+//     const scopeResult = await query(
+//       'SELECT id, authority_type FROM Authority_scope WHERE commission_id = @commId',
+//       { commId: comm.id },
+//     );
+//     comm.authority_scopes = scopeResult.recordset;
+//   }
+
+//   return commissions;
+// };
+
+// ─── 9. Tạo Commission ───────────────────────────────────────────────────────
+const createCommission = async (notaryId, data) => {
+  const {
+    commission_state_id,
+    commission_number,
+    issue_date,
+    expiration_date,
+    is_renewal_applied,
+    expected_renewal_date,
+    authority_types = [],
+  } = data;
+
+  const riskStatus = computeRiskStatus(expiration_date);
+
+  const result = await query(
+    `INSERT INTO Notary_commissions
+       (notary_id, commission_state_id, commission_number, issue_date, expiration_date,
+        status, is_renewal_applied, expected_renewal_date)
+     OUTPUT INSERTED.id
+     VALUES
+       (@notaryId, @commStateId, @commNumber, @issueDate, @expirationDate,
+        @status, @isRenewal, @expectedRenewal)`,
+    {
+      notaryId,
+      commStateId: commission_state_id || null,
+      commNumber: commission_number || null,
+      issueDate: issue_date || null,
+      expirationDate: expiration_date || null,
+      status: riskStatus,
+      isRenewal: is_renewal_applied ? 1 : 0,
+      expectedRenewal: expected_renewal_date || null,
+    },
+  );
+
+  const commId = result.recordset[0]?.id;
+
+  for (const authType of authority_types) {
+    await query(
+      'INSERT INTO Authority_scope (commission_id, authority_type) VALUES (@commId, @authType)',
+      { commId, authType },
+    );
+  }
+
+  return { id: commId, risk_status: riskStatus };
+};
+
+// ─── 10. Cập nhật Commission ─────────────────────────────────────────────────
+const updateCommission = async (commId, data) => {
+  const {
+    commission_number,
+    issue_date,
+    expiration_date,
+    is_renewal_applied,
+    expected_renewal_date,
+    authority_types,
+  } = data;
+
+  const riskStatus = computeRiskStatus(expiration_date);
+
+  await query(
+    `UPDATE Notary_commissions SET
+       commission_number = COALESCE(@commNumber, commission_number),
+       issue_date = COALESCE(@issueDate, issue_date),
+       expiration_date = COALESCE(@expirationDate, expiration_date),
+       status = @status,
+       is_renewal_applied = COALESCE(@isRenewal, is_renewal_applied),
+       expected_renewal_date = COALESCE(@expectedRenewal, expected_renewal_date)
+     WHERE id = @commId`,
+    {
+      commId,
+      commNumber: commission_number || null,
+      issueDate: issue_date || null,
+      expirationDate: expiration_date || null,
+      status: riskStatus,
+      isRenewal: is_renewal_applied !== undefined ? (is_renewal_applied ? 1 : 0) : null,
+      expectedRenewal: expected_renewal_date || null,
+    },
+  );
+
+  if (Array.isArray(authority_types)) {
+    await query('DELETE FROM Authority_scope WHERE commission_id = @commId', { commId });
+    for (const authType of authority_types) {
+      await query(
+        'INSERT INTO Authority_scope (commission_id, authority_type) VALUES (@commId, @authType)',
+        { commId, authType },
+      );
+    }
+  }
+
+  return { updated: true, risk_status: riskStatus };
+};
+
 // ─── 11. Xem Compliance (Bond + Insurance) ───────────────────────────────────
 const getCompliance = async (notaryId) => {
   const insResult = await query(
@@ -1081,7 +1202,6 @@ const getCommissions = async (notaryId, filters = {}) => {
   const whereClauses = ['nc.notary_id = @notaryId'];
   const params = { notaryId, offset, limit: normalizedLimit };
 
-  // ... (Giữ nguyên logic filter search, state, expiration_date của bạn) ...
   if (state) {
     whereClauses.push('(s.state_code = @state OR s.state_name LIKE @stateLike)');
     params.state = state;
@@ -1223,6 +1343,8 @@ module.exports = {
   getOverview,
   getStatusHistory,
   getCommissions,
+  createCommission,
+  updateCommission,
   getCompliance,
   updateCompliance,
   getCapabilities,
@@ -1252,7 +1374,6 @@ module.exports = {
 
   // ─── SC004: Commission (dev-trongtuan) ───
   resolveCommissionStateId,
-  getCommissions,
   checkCommissionOwnership,
   insertCommissionRecord,
   updateCommissionRecord,
