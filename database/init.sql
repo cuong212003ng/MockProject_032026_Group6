@@ -151,6 +151,9 @@ CREATE TABLE notary_service_areas (
 END
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6c1d201 (Feature/notary profile sc005 sc006 )
 -- ── 4a. notary_languages ──
 IF OBJECT_ID ('notary_languages', 'U') IS NULL
 BEGIN
@@ -171,8 +174,11 @@ CREATE TABLE notary_blackout_dates (
 );
 END
 
+<<<<<<< HEAD
 =======
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+>>>>>>> 6c1d201 (Feature/notary profile sc005 sc006 )
 -- ── 5. Job ──
 IF OBJECT_ID ('Job', 'U') IS NULL
 BEGIN
@@ -482,6 +488,9 @@ SET IDENTITY_INSERT States OFF;
 END
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6c1d201 (Feature/notary profile sc005 sc006 )
 -- ── Seed: Languages ──
 IF NOT EXISTS (SELECT 1 FROM Languages)
 BEGIN
@@ -494,10 +503,13 @@ INSERT INTO Languages (id, lang_code, lang_name) VALUES
 SET IDENTITY_INSERT Languages OFF;
 END
 
+<<<<<<< HEAD
 =======
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
 =======
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 6c1d201 (Feature/notary profile sc005 sc006 )
 -- ── Seed: notaries ──
 IF NOT EXISTS (
     SELECT 1
@@ -932,6 +944,9 @@ END
 =======
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
 GO
+
+ALTER TABLE Notary_insurances
+ADD effective_date DATE NULL;
 
 PRINT 'notarial_db khởi tạo thành công!';
 GO

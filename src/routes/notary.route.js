@@ -759,12 +759,17 @@ router.get(
  *                 example: '17:00'
  *               fixed_days_off:
  *                 type: string
+<<<<<<< HEAD
  *                 example: 'sat,sun'
+=======
+ *                 example: 'Saturday,Sunday'
+>>>>>>> 6c1d201 (Feature/notary profile sc005 sc006 )
  *               blackout_dates:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: date
+<<<<<<< HEAD
  *               work_holiday:
  *                 type: boolean
  *                 description: Whether the notary works on holidays
@@ -793,6 +798,8 @@ router.get(
  *                         type: array
  *                         items:
  *                           type: integer
+=======
+>>>>>>> 6c1d201 (Feature/notary profile sc005 sc006 )
  *     responses:
  *       200:
  *         description: Availability set
