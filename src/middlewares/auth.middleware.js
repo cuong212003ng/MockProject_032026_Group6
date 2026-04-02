@@ -55,12 +55,16 @@ const authenticate = (req, res, next) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 const authorize =
   (...roles) =>
   (req, res, next) => {
     if (!req.user) {
       return sendError(res, 'Authentication required', 401);
     }
+<<<<<<< HEAD
 
     if (!roles.includes(req.user.role)) {
       return sendError(res, `Access denied. Requires role: ${roles.join(', ')}`, 403);
@@ -123,13 +127,15 @@ const authorize = (...roles) => (req, res, next) => {
   if (!req.user) {
     return sendError(res, 'Authentication required', 401);
   }
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 
-  if (!roles.includes(req.user.role)) {
-    return sendError(res, `Access denied. Requires role: ${roles.join(', ')}`, 403);
-  }
+    if (!roles.includes(req.user.role)) {
+      return sendError(res, `Access denied. Requires role: ${roles.join(', ')}`, 403);
+    }
 
-  next();
-};
+    next();
+  };
 
 const authorizeNotaryOwnerOrAdmin = async (req, res, next) => {
   try {

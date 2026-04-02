@@ -5,11 +5,14 @@ const documentService = require('../services/document.service');
 const auditService = require('../services/audit.service');
 const notaryProfileService = require('../services/notary-profile.service');
 const commissionService = require('../services/commission.service');
+<<<<<<< HEAD
 =======
 const documentService = require('../services/document.service');
 const auditService = require('../services/audit.service');
 const notaryProfileService = require('../services/notary-profile.service');
 >>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 const { isAppError } = require('../utils/app-error');
 const { sendSuccess, sendError } = require('../utils/response.helper');
 
@@ -51,15 +54,21 @@ const createNotary = async (req, res) => {
     }
     const id = await notaryModel.create(req.body);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
     return sendSuccess(
       res,
       { id: `#${id}`, status: 'PENDING' },
       'Notary created successfully',
       201,
     );
+<<<<<<< HEAD
 =======
     return sendSuccess(res, { id: `#${id}`, status: 'PENDING' }, 'Notary created successfully', 201);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
   } catch (err) {
     console.error('[createNotary]', err.message);
     return sendError(res, 'Failed to create notary', 500);
@@ -207,19 +216,27 @@ const createCommission = async (req, res) => {
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     const result = await commissionService.createCommission(id, req.body);
 =======
     const result = await notaryModel.createCommission(id, req.body);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    const result = await commissionService.createCommission(id, req.body);
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
     return sendSuccess(
       res,
       { id: `#${result.id}`, risk_status: result.risk_status },
       'Commission created successfully',
 <<<<<<< HEAD
+<<<<<<< HEAD
       201,
 =======
       201
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+      201,
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
     );
   } catch (err) {
     console.error('[createCommission]', err.message);
@@ -231,12 +248,17 @@ const createCommission = async (req, res) => {
 const updateCommission = async (req, res) => {
   try {
 <<<<<<< HEAD
+<<<<<<< HEAD
     const { id, cid } = req.params;
     const result = await commissionService.updateCommission(id, cid, req.body);
 =======
     const { cid } = req.params;
     const result = await notaryModel.updateCommission(cid, req.body);
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+    const { id, cid } = req.params;
+    const result = await commissionService.updateCommission(id, cid, req.body);
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
     return sendSuccess(res, result, 'Commission updated successfully');
   } catch (err) {
     console.error('[updateCommission]', err.message);
@@ -568,6 +590,7 @@ const deleteCommission = async (req, res) => {
     return sendSuccess(res, result, 'Commission deleted successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to delete commission', 'deleteCommission');
+<<<<<<< HEAD
 =======
     const { id } = req.params;
     const notary = await notaryModel.findById(id);
@@ -584,6 +607,8 @@ const deleteCommission = async (req, res) => {
 =======
     return handleServiceError(res, err, 'Failed to create incident', 'createIncident');
 >>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
   }
 };
 
@@ -611,10 +636,16 @@ module.exports = {
   getIncidents,
   createIncident,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
   // ─── SC003: Personal Info (dev-trongtuan) ───
   updatePersonalInfo,
   // ─── SC004: Commission (dev-trongtuan) ───
   deleteCommission,
+<<<<<<< HEAD
 =======
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 };

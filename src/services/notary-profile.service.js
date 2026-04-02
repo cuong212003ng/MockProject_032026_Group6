@@ -60,6 +60,9 @@ const toggleStatus = async ({ notaryId, isActive, actorId }) => {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 // ============================================================================
 // dev-trongtuan (SC003 & SC004)
 // ============================================================================
@@ -87,14 +90,21 @@ const updatePersonalInfo = async ({ notaryId, changes, actorId }) => {
   };
 };
 
+<<<<<<< HEAD
 =======
 >>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 module.exports = {
   getNotaryOrThrow,
   updateBio,
   toggleStatus,
 <<<<<<< HEAD
+<<<<<<< HEAD
   updatePersonalInfo,
 =======
 >>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
+=======
+  updatePersonalInfo,
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 };

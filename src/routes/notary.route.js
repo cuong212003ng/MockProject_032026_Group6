@@ -281,6 +281,7 @@ router.get(
 /**
  * @swagger
  * /api/v1/notaries/{id}/personal-info:
+<<<<<<< HEAD
  *   patch:
  *     summary: Update notary personal info (SC003)
  *     tags: [Notaries]
@@ -315,6 +316,41 @@ router.get(
  *     responses:
  *       200:
  *         description: Personal info updated
+=======
+ * patch:
+ * summary: Update notary personal info (SC003)
+ * tags: [Notaries]
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: integer
+ * requestBody:
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * first_name:
+ * type: string
+ * last_name:
+ * type: string
+ * dob:
+ * type: string
+ * format: date
+ * email:
+ * type: string
+ * phone:
+ * type: string
+ * address:
+ * type: string
+ * responses:
+ * 200:
+ * description: Personal info updated
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
  */
 router.patch(
   '/:id/personal-info',

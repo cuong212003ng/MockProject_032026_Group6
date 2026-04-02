@@ -32,10 +32,14 @@ const buildExpiryAlerts = (insurances, bonds) => {
 // ─── Audit Log helper ─────────────────────────────────────────────────────────
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 const insertAuditLog = async (
   { notaryId, tableName, recordId, action, oldValue, newValue, changedBy },
   queryExecutor = query,
 ) => {
+<<<<<<< HEAD
   const runQuery = queryExecutor || query;
 
   await runQuery(
@@ -57,6 +61,8 @@ const insertAuditLog = async ({
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
 =======
 }, queryExecutor = query) => {
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
   const runQuery = queryExecutor || query;
 
   await runQuery(
@@ -340,7 +346,7 @@ const toggleStatus = async (id, isActive, changedBy) => {
 // ─── 6. Overview (KPI + Alerts) ──────────────────────────────────────────────
 const getOverview = async (id) => {
   const jobsResult = await query(
-    'SELECT COUNT(*) AS jobs_completed FROM [job assignments] ja INNER JOIN Job j ON j.id = ja.job_id WHERE ja.notary_id = @id AND j.Status = \'Completed\'',
+    "SELECT COUNT(*) AS jobs_completed FROM [job assignments] ja INNER JOIN Job j ON j.id = ja.job_id WHERE ja.notary_id = @id AND j.Status = 'Completed'",
     { id },
   );
 
@@ -382,6 +388,9 @@ const getStatusHistory = async (id) => {
 
 // ─── 8. Danh sách Commission ─────────────────────────────────────────────────
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 // const getCommissions = async (notaryId) => {
 //   const commResult = await query(
 //     `SELECT
@@ -394,6 +403,7 @@ const getStatusHistory = async (id) => {
 //      ORDER BY nc.issue_date DESC`,
 //     { notaryId },
 //   );
+<<<<<<< HEAD
 
 //   const commissions = commResult.recordset;
 
@@ -422,22 +432,29 @@ const getCommissions = async (notaryId) => {
      ORDER BY nc.issue_date DESC`,
     { notaryId },
   );
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 
-  const commissions = commResult.recordset;
+//   const commissions = commResult.recordset;
 
-  for (const comm of commissions) {
-    comm.risk_status = computeRiskStatus(comm.expiration_date);
+//   for (const comm of commissions) {
+//     comm.risk_status = computeRiskStatus(comm.expiration_date);
 
-    const scopeResult = await query(
-      'SELECT id, authority_type FROM Authority_scope WHERE commission_id = @commId',
-      { commId: comm.id },
-    );
-    comm.authority_scopes = scopeResult.recordset;
-  }
+//     const scopeResult = await query(
+//       'SELECT id, authority_type FROM Authority_scope WHERE commission_id = @commId',
+//       { commId: comm.id },
+//     );
+//     comm.authority_scopes = scopeResult.recordset;
+//   }
 
+<<<<<<< HEAD
   return commissions;
 };
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+//   return commissions;
+// };
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 
 // ─── 9. Tạo Commission ───────────────────────────────────────────────────────
 const createCommission = async (notaryId, data) => {
@@ -1422,6 +1439,7 @@ const verifyDocument = async (docId, status, changedBy) => {
 const updateDocumentVerificationStatus = async (docId, notaryId, status, queryExecutor = query) => {
 =======
 /* eslint-enable no-unused-vars */
+<<<<<<< HEAD
 const updateDocumentVerificationStatus = async (
   docId,
   notaryId,
@@ -1429,6 +1447,9 @@ const updateDocumentVerificationStatus = async (
   queryExecutor = query,
 ) => {
 >>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
+=======
+const updateDocumentVerificationStatus = async (docId, notaryId, status, queryExecutor = query) => {
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
   const runQuery = queryExecutor || query;
   const validStatuses = ['APPROVED', 'PENDING', 'REJECTED'];
   if (!validStatuses.includes(status)) return null;
@@ -1893,12 +1914,15 @@ const deleteCommissionRecord = async (commId, notaryId, txQuery = query) => {
     commId,
     notaryId,
   });
+<<<<<<< HEAD
 =======
   return { id: result.recordset[0]?.id };
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
 =======
   return result.recordset[0] || null;
 >>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 };
 
 module.exports = {
@@ -1964,6 +1988,7 @@ module.exports = {
   insertAuthorityScope,
   deleteAuthorityScopes,
   deleteCommissionRecord,
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
@@ -1979,4 +2004,6 @@ module.exports = {
   createIncident,
   computeRiskStatus,
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
+=======
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
 };

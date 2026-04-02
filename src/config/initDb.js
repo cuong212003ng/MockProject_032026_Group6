@@ -65,18 +65,23 @@ const path = require('path');
 const sql = require('mssql');
 const { env } = require('./env');
 
+const [dbHost, dbInstance] = env.dbServer.split('\\');
+
 const masterConfig = {
-  server: env.dbServer,
-  port: env.dbPort,
+  server: dbHost,
   user: env.dbUser,
   password: env.dbPassword,
   database: 'master',
   options: {
     encrypt: false,
     trustServerCertificate: true,
-    instanceName: process.env.DB_INSTANCE || undefined,
+    instanceName: dbInstance || process.env.DB_INSTANCE || undefined,
   },
 };
+
+if (!masterConfig.options.instanceName) {
+  masterConfig.port = env.dbPort;
+}
 
 const executeSqlFile = async (pool, filePath) => {
   const sqlContent = fs.readFileSync(filePath, 'utf8');

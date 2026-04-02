@@ -105,10 +105,14 @@ const assignJob = async (req, res) => {
       },
       'Job assigned successfully',
 <<<<<<< HEAD
+<<<<<<< HEAD
       201,
 =======
       201
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+      201,
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
     );
   } catch (error) {
     console.error('[assignJob]', error.message);
@@ -134,10 +138,14 @@ const acceptJob = async (req, res) => {
         accepted_at: result.accepted_at,
       },
 <<<<<<< HEAD
+<<<<<<< HEAD
       'Job accepted successfully',
 =======
       'Job accepted successfully'
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+      'Job accepted successfully',
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
     );
   } catch (error) {
     console.error('[acceptJob]', error.message);
@@ -154,6 +162,7 @@ const updateJobStatus = async (req, res) => {
     const VALID_STATUSES = ['Pending', 'Assigned', 'Completed', 'Cancelled'];
     if (!Status || !VALID_STATUSES.includes(Status)) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       return sendError(res, `Status must be one of: ${VALID_STATUSES.join(', ')}`, 400);
 =======
       return sendError(
@@ -162,6 +171,9 @@ const updateJobStatus = async (req, res) => {
         400
       );
 >>>>>>> 5dc67de (initial: setup project with proper gitignore)
+=======
+      return sendError(res, `Status must be one of: ${VALID_STATUSES.join(', ')}`, 400);
+>>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
     }
 
     const job = await jobModel.findById(id);
