@@ -282,6 +282,9 @@ router.get(
  * @swagger
  * /api/v1/notaries/{id}/personal-info:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 3fcb0ff (Feature/notary profile sc003 sc004 )
  *   patch:
  *     summary: Update notary personal info (SC003)
  *     tags: [Notaries]
@@ -316,6 +319,7 @@ router.get(
  *     responses:
  *       200:
  *         description: Personal info updated
+<<<<<<< HEAD
 =======
  * patch:
  * summary: Update notary personal info (SC003)
@@ -351,6 +355,8 @@ router.get(
  * 200:
  * description: Personal info updated
 >>>>>>> 69a1ec8 (* feat: Add APIs of sc-003 sc-004)
+=======
+>>>>>>> 3fcb0ff (Feature/notary profile sc003 sc004 )
  */
 router.patch(
   '/:id/personal-info',
@@ -1074,6 +1080,301 @@ router.post(
   authorize('ADMIN'),
   validateIncidentCreate,
   notaryController.createIncident,
+);
+
+// dev-trongtuan
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/personal-info:
+ *   put:
+ *     summary: SC_003 - Update notary personal information
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               dob:
+ *                 type: string
+ *                 format: date
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phone:
+ *                 type: string
+ *               address:
+ *                 type: object
+ *                 properties:
+ *                   street:
+ *                     type: string
+ *                   city:
+ *                     type: string
+ *                   state:
+ *                     type: string
+ *                   zip_code:
+ *                     type: string
+ *             example:
+ *               first_name: John
+ *               last_name: Doe
+ *               dob: 1990-01-15
+ *               email: john.doe@example.com
+ *               phone: +1 (555) 123-4567
+ *               address:
+ *                 street: 123 Main St
+ *                 city: Dallas
+ *                 state: TX
+ *                 zip_code: 75001
+ *     responses:
+ *       200:
+ *         description: Personal information updated
+ *       400:
+ *         description: Validation failed
+ */
+router.put(
+  '/:id/personal-info',
+  authorize('ADMIN'),
+  validatePersonalInfoUpdate,
+  notaryController.updatePersonalInfo,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/commissions:
+ *   get:
+ *     summary: SC_004 - Get commissions list with filters and pagination
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [Valid, Not eligible, Expired]
+ *       - in: query
+ *         name: state
+ *         schema:
+ *           type: string
+ *         description: State code or state name
+ *       - in: query
+ *         name: expiration_date
+ *         schema:
+ *           type: string
+ *         description: Accepts YYYY-MM-DD or "<n> days left" (e.g. 30 days left)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Keyword search for commission_number/state
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Commission list retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     items:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           commission_id:
+ *                             type: integer
+ *                           commission_number:
+ *                             type: string
+ *                           state:
+ *                             type: string
+ *                           issue_date:
+ *                             type: string
+ *                             format: date
+ *                           expiration_date:
+ *                             type: string
+ *                             format: date
+ *                           risk:
+ *                             type: string
+ *                             enum: [Valid, Not eligible, Expired]
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                         total:
+ *                           type: integer
+ *                         total_pages:
+ *                           type: integer
+ *       400:
+ *         description: Validation failed
+ */
+router.get(
+  '/:id/commissions',
+  authorize('ADMIN'),
+  validateCommissionListQuery,
+  notaryController.getCommissions,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/commissions:
+ *   post:
+ *     summary: SC_004 - Create a new commission
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - commission_number
+ *               - state
+ *               - issue_date
+ *               - expiration_date
+ *             properties:
+ *               commission_number:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *                 description: State code or state name; mapped to commission_state_id
+ *               issue_date:
+ *                 type: string
+ *                 format: date
+ *               expiration_date:
+ *                 type: string
+ *                 format: date
+ *               is_renewal_applied:
+ *                 type: boolean
+ *               expected_renewal_date:
+ *                 type: string
+ *                 format: date
+ *               authority_types:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: Commission created
+ *       400:
+ *         description: Validation failed (including issue_date must be before expiration_date)
+ */
+router.post(
+  '/:id/commissions',
+  authorize('ADMIN'),
+  validateCommissionPayload,
+  notaryController.createCommission,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/commissions/{commission_id}:
+ *   put:
+ *     summary: SC_004 - Update an existing commission
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: commission_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - commission_number
+ *               - state
+ *               - issue_date
+ *               - expiration_date
+ *             properties:
+ *               commission_number:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *                 description: State code or state name; mapped to commission_state_id
+ *               issue_date:
+ *                 type: string
+ *                 format: date
+ *               expiration_date:
+ *                 type: string
+ *                 format: date
+ *               is_renewal_applied:
+ *                 type: boolean
+ *               expected_renewal_date:
+ *                 type: string
+ *                 format: date
+ *               authority_types:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Commission updated
+ *       400:
+ *         description: Validation failed (including issue_date must be before expiration_date)
+ */
+router.put(
+  '/:id/commissions/:commission_id',
+  authorize('ADMIN'),
+  validateCommissionUpdatePayload,
+  notaryController.updateCommission,
 );
 
 module.exports = router;
