@@ -1,0 +1,30 @@
+{
+  "name": "notarial-service",
+  "version": "1.0.0",
+  "description": "Notarial Service – Hệ thống công chứng tại Mỹ (Nhóm 6)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "nodemon --inspect src/index.js",
+    "dev": "nodemon src/index.js",
+    "lint": "eslint src/**/*.js test/**/*.js",
+    "format": "prettier --write src/**/*.js test/**/*.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.3",
+    "mssql": "^12.2.0",
+    "multer": "^2.1.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.2.5",
+    "supertest": "^7.2.2"
+  }
+}
