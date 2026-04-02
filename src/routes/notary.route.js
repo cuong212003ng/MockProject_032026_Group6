@@ -19,6 +19,8 @@ const {
   validateIncidentCreate,
   validateBioUpdate,
   validateToggleStatus,
+  validatePersonalInfoUpdate,
+  validateNotaryAndCommissionIdParams,
 } = require('../middlewares/validate.middleware');
 
 // router.use(authenticate); // TODO: bật lại khi deploy
@@ -215,7 +217,12 @@ router.patch('/:id/bio', authorize('ADMIN'), validateBioUpdate, notaryController
  *       200:
  *         description: Status toggled
  */
-router.patch('/:id/status', authorize('ADMIN'), validateToggleStatus, notaryController.toggleStatus);
+router.patch(
+  '/:id/status',
+  authorize('ADMIN'),
+  validateToggleStatus,
+  notaryController.toggleStatus,
+);
 
 /**
  * @swagger
@@ -235,7 +242,12 @@ router.patch('/:id/status', authorize('ADMIN'), validateToggleStatus, notaryCont
  *       200:
  *         description: KPI overview data
  */
-router.get('/:id/overview', authorize('ADMIN'), validateNotaryIdParam, notaryController.getOverview);
+router.get(
+  '/:id/overview',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getOverview,
+);
 
 /**
  * @swagger
@@ -255,7 +267,56 @@ router.get('/:id/overview', authorize('ADMIN'), validateNotaryIdParam, notaryCon
  *       200:
  *         description: Status history list
  */
-router.get('/:id/status-history', authorize('ADMIN'), validateNotaryIdParam, notaryController.getStatusHistory);
+router.get(
+  '/:id/status-history',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getStatusHistory,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/personal-info:
+ * patch:
+ * summary: Update notary personal info (SC003)
+ * tags: [Notaries]
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: integer
+ * requestBody:
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * first_name:
+ * type: string
+ * last_name:
+ * type: string
+ * dob:
+ * type: string
+ * format: date
+ * email:
+ * type: string
+ * phone:
+ * type: string
+ * address:
+ * type: string
+ * responses:
+ * 200:
+ * description: Personal info updated
+ */
+router.patch(
+  '/:id/personal-info',
+  authorize('ADMIN'),
+  validatePersonalInfoUpdate,
+  notaryController.updatePersonalInfo,
+);
 
 // ── Legal / Commissions ───────────────────────────────────────────────────────
 
@@ -277,7 +338,12 @@ router.get('/:id/status-history', authorize('ADMIN'), validateNotaryIdParam, not
  *       200:
  *         description: Commission list with risk_status (VALID | EXPIRING_SOON | EXPIRED)
  */
-router.get('/:id/commissions', authorize('ADMIN'), validateNotaryIdParam, notaryController.getCommissions);
+router.get(
+  '/:id/commissions',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getCommissions,
+);
 
 /**
  * @swagger
@@ -327,7 +393,12 @@ router.get('/:id/commissions', authorize('ADMIN'), validateNotaryIdParam, notary
  *       201:
  *         description: Commission created
  */
-router.post('/:id/commissions', authorize('ADMIN'), validateNotaryIdParam, notaryController.createCommission);
+router.post(
+  '/:id/commissions',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.createCommission,
+);
 
 /**
  * @swagger
@@ -375,7 +446,12 @@ router.post('/:id/commissions', authorize('ADMIN'), validateNotaryIdParam, notar
  *       200:
  *         description: Commission updated
  */
-router.patch('/:id/commissions/:cid', authorize('ADMIN'), validateNotaryIdParam, notaryController.updateCommission);
+router.patch(
+  '/:id/commissions/:cid',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.updateCommission,
+);
 
 // ── Compliance (Bond & Insurance) ────────────────────────────────────────────
 
@@ -397,7 +473,12 @@ router.patch('/:id/commissions/:cid', authorize('ADMIN'), validateNotaryIdParam,
  *       200:
  *         description: Bond and insurance details with risk_status
  */
-router.get('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryController.getCompliance);
+router.get(
+  '/:id/compliance',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getCompliance,
+);
 
 /**
  * @swagger
@@ -446,8 +527,44 @@ router.get('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryC
  *       200:
  *         description: Compliance updated
  */
-router.put('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryController.updateCompliance);
+router.put(
+  '/:id/compliance',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.updateCompliance,
+);
 
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/commissions/{commission_id}:
+ * delete:
+ * summary: Delete a commission (SC004)
+ * tags: [Notaries]
+ * security:
+ * - bearerAuth: []
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: integer
+ * - in: path
+ * name: commission_id
+ * required: true
+ * schema:
+ * type: integer
+ * responses:
+ * 200:
+ * description: Commission deleted
+ * 404:
+ * description: Commission not found
+ */
+router.delete(
+  '/:id/commissions/:commission_id',
+  authorize('ADMIN'),
+  validateNotaryAndCommissionIdParams,
+  notaryController.deleteCommission,
+);
 // ── Capabilities ─────────────────────────────────────────────────────────────
 
 /**
@@ -468,7 +585,12 @@ router.put('/:id/compliance', authorize('ADMIN'), validateNotaryIdParam, notaryC
  *       200:
  *         description: Capabilities and RON technology info
  */
-router.get('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, notaryController.getCapabilities);
+router.get(
+  '/:id/capabilities',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getCapabilities,
+);
 
 /**
  * @swagger
@@ -519,7 +641,12 @@ router.get('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, notar
  *       200:
  *         description: Capabilities updated
  */
-router.patch('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, notaryController.updateCapabilities);
+router.patch(
+  '/:id/capabilities',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.updateCapabilities,
+);
 
 // ── Schedule / Availability ───────────────────────────────────────────────────
 
@@ -541,7 +668,12 @@ router.patch('/:id/capabilities', authorize('ADMIN'), validateNotaryIdParam, not
  *       200:
  *         description: Availability record
  */
-router.get('/:id/availability', authorize('ADMIN'), validateNotaryIdParam, notaryController.getAvailability);
+router.get(
+  '/:id/availability',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getAvailability,
+);
 
 /**
  * @swagger
@@ -578,7 +710,12 @@ router.get('/:id/availability', authorize('ADMIN'), validateNotaryIdParam, notar
  *       200:
  *         description: Availability set
  */
-router.post('/:id/availability', authorize('ADMIN'), validateNotaryIdParam, notaryController.setAvailability);
+router.post(
+  '/:id/availability',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.setAvailability,
+);
 
 // ── Documents ────────────────────────────────────────────────────────────────
 

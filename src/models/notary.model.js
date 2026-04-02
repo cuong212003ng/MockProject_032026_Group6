@@ -30,15 +30,10 @@ const buildExpiryAlerts = (insurances, bonds) => {
 };
 
 // ─── Audit Log helper ─────────────────────────────────────────────────────────
-const insertAuditLog = async ({
-  notaryId,
-  tableName,
-  recordId,
-  action,
-  oldValue,
-  newValue,
-  changedBy,
-}, queryExecutor = query) => {
+const insertAuditLog = async (
+  { notaryId, tableName, recordId, action, oldValue, newValue, changedBy },
+  queryExecutor = query,
+) => {
   const runQuery = queryExecutor || query;
 
   await runQuery(
@@ -242,7 +237,7 @@ const toggleStatus = async (id, isActive, changedBy) => {
 // ─── 6. Overview (KPI + Alerts) ──────────────────────────────────────────────
 const getOverview = async (id) => {
   const jobsResult = await query(
-    'SELECT COUNT(*) AS jobs_completed FROM [job assignments] ja INNER JOIN Job j ON j.id = ja.job_id WHERE ja.notary_id = @id AND j.Status = \'Completed\'',
+    "SELECT COUNT(*) AS jobs_completed FROM [job assignments] ja INNER JOIN Job j ON j.id = ja.job_id WHERE ja.notary_id = @id AND j.Status = 'Completed'",
     { id },
   );
 
@@ -283,33 +278,33 @@ const getStatusHistory = async (id) => {
 };
 
 // ─── 8. Danh sách Commission ─────────────────────────────────────────────────
-const getCommissions = async (notaryId) => {
-  const commResult = await query(
-    `SELECT
-       nc.id, nc.notary_id, nc.commission_number, nc.issue_date, nc.expiration_date,
-       nc.status, nc.is_renewal_applied, nc.expected_renewal_date,
-       s.state_code, s.state_name
-     FROM Notary_commissions nc
-     LEFT JOIN States s ON s.id = nc.commission_state_id
-     WHERE nc.notary_id = @notaryId
-     ORDER BY nc.issue_date DESC`,
-    { notaryId },
-  );
+// const getCommissions = async (notaryId) => {
+//   const commResult = await query(
+//     `SELECT
+//        nc.id, nc.notary_id, nc.commission_number, nc.issue_date, nc.expiration_date,
+//        nc.status, nc.is_renewal_applied, nc.expected_renewal_date,
+//        s.state_code, s.state_name
+//      FROM Notary_commissions nc
+//      LEFT JOIN States s ON s.id = nc.commission_state_id
+//      WHERE nc.notary_id = @notaryId
+//      ORDER BY nc.issue_date DESC`,
+//     { notaryId },
+//   );
 
-  const commissions = commResult.recordset;
+//   const commissions = commResult.recordset;
 
-  for (const comm of commissions) {
-    comm.risk_status = computeRiskStatus(comm.expiration_date);
+//   for (const comm of commissions) {
+//     comm.risk_status = computeRiskStatus(comm.expiration_date);
 
-    const scopeResult = await query(
-      'SELECT id, authority_type FROM Authority_scope WHERE commission_id = @commId',
-      { commId: comm.id },
-    );
-    comm.authority_scopes = scopeResult.recordset;
-  }
+//     const scopeResult = await query(
+//       'SELECT id, authority_type FROM Authority_scope WHERE commission_id = @commId',
+//       { commId: comm.id },
+//     );
+//     comm.authority_scopes = scopeResult.recordset;
+//   }
 
-  return commissions;
-};
+//   return commissions;
+// };
 
 // ─── 9. Tạo Commission ───────────────────────────────────────────────────────
 const createCommission = async (notaryId, data) => {
@@ -934,12 +929,7 @@ const verifyDocumentLegacy = async (docId, status, changedBy) => {
 
 // ─── 20. Audit Logs ──────────────────────────────────────────────────────────
 /* eslint-enable no-unused-vars */
-const updateDocumentVerificationStatus = async (
-  docId,
-  notaryId,
-  status,
-  queryExecutor = query,
-) => {
+const updateDocumentVerificationStatus = async (docId, notaryId, status, queryExecutor = query) => {
   const runQuery = queryExecutor || query;
   const validStatuses = ['APPROVED', 'PENDING', 'REJECTED'];
   if (!validStatuses.includes(status)) return null;
@@ -1136,6 +1126,212 @@ const createIncident = async (notaryId, data) => {
   return result.recordset[0] || null;
 };
 
+// ============================================================================
+// dev-trongtuan (SC003 & SC004)
+// ============================================================================
+
+const getPersonalInfoById = async (id) => {
+  const result = await query(
+    `SELECT
+       n.id, n.first_name, n.last_name, n.date_of_birth AS dob,
+       n.email, n.phone, n.residential_address AS address,
+       n.rating, n.status, n.photo_url AS avatar_url, n.notary_code
+     FROM notaries n
+     WHERE n.id = @id`,
+    { id },
+  );
+  return result.recordset[0] || null;
+};
+
+const updatePersonalInfo = async (id, data) => {
+  const previous = await getPersonalInfoById(id);
+  if (!previous) return null;
+
+  const fields = [];
+  const params = { id };
+  const allowed = ['first_name', 'last_name', 'dob', 'email', 'phone', 'address'];
+
+  allowed.forEach((key) => {
+    if (data[key] !== undefined) {
+      if (key === 'dob') {
+        fields.push('date_of_birth = @dob');
+        params.dob = data.dob;
+      } else if (key === 'address') {
+        fields.push('residential_address = @address');
+        params.address = data.address;
+      } else {
+        fields.push(`${key} = @${key}`);
+        params[key] = data[key];
+      }
+    }
+  });
+
+  if (fields.length === 0) {
+    return { updated: false, previous, current: previous };
+  }
+
+  await query(`UPDATE notaries SET ${fields.join(', ')} WHERE id = @id`, params);
+  const current = await getPersonalInfoById(id);
+
+  return { updated: true, previous, current };
+};
+
+// ─── SC004: Commission Helpers for Service Transaction ────────────────────────
+
+const resolveCommissionStateId = async (state) => {
+  const stateResult = await query(
+    `SELECT TOP 1 id FROM States WHERE state_code = @state OR state_name = @state`,
+    { state },
+  );
+  return stateResult.recordset[0]?.id || null;
+};
+
+const getCommissions = async (notaryId, filters = {}) => {
+  const {
+    status,
+    state,
+    expiration_date: expirationDateFilter,
+    search,
+    page = 1,
+    limit = 10,
+  } = filters;
+  const normalizedPage = Math.max(parseInt(page, 10) || 1, 1);
+  const normalizedLimit = Math.max(parseInt(limit, 10) || 10, 1);
+  const offset = (normalizedPage - 1) * normalizedLimit;
+
+  const whereClauses = ['nc.notary_id = @notaryId'];
+  const params = { notaryId, offset, limit: normalizedLimit };
+
+  if (state) {
+    whereClauses.push('(s.state_code = @state OR s.state_name LIKE @stateLike)');
+    params.state = state;
+    params.stateLike = `%${state}%`;
+  }
+  if (search) {
+    whereClauses.push(
+      '(nc.commission_number LIKE @search OR s.state_code LIKE @search OR s.state_name LIKE @search)',
+    );
+    params.search = `%${search}%`;
+  }
+  if (expirationDateFilter) {
+    const daysMatch = String(expirationDateFilter).match(/(\d+)/);
+    if (daysMatch) {
+      params.daysLeft = parseInt(daysMatch[1], 10);
+      whereClauses.push(
+        'DATEDIFF(DAY, CAST(GETDATE() AS DATE), CAST(nc.expiration_date AS DATE)) BETWEEN 0 AND @daysLeft',
+      );
+    } else {
+      whereClauses.push('CAST(nc.expiration_date AS DATE) = CAST(@expirationDate AS DATE)');
+      params.expirationDate = expirationDateFilter;
+    }
+  }
+
+  const riskExpression = `CASE
+      WHEN CAST(nc.expiration_date AS DATE) < CAST(GETDATE() AS DATE) THEN 'Expired'
+      WHEN UPPER(ISNULL(nc.status, '')) IN ('REVOKED', 'INACTIVE', 'SUSPENDED', 'NOT_ELIGIBLE') THEN 'Not eligible'
+      ELSE 'Valid'
+    END`;
+
+  if (status && ['Valid', 'Not eligible', 'Expired'].includes(status)) {
+    whereClauses.push(`${riskExpression} = @riskStatus`);
+    params.riskStatus = status;
+  }
+
+  const whereClause = `WHERE ${whereClauses.join(' AND ')}`;
+
+  const countResult = await query(
+    `SELECT COUNT(*) AS total FROM Notary_commissions nc LEFT JOIN States s ON s.id = nc.commission_state_id ${whereClause}`,
+    params,
+  );
+  const total = countResult.recordset[0]?.total || 0;
+
+  const commResult = await query(
+    `SELECT nc.id AS commission_id, nc.commission_number, s.state_code AS state, nc.issue_date, nc.expiration_date, ${riskExpression} AS risk
+     FROM Notary_commissions nc LEFT JOIN States s ON s.id = nc.commission_state_id ${whereClause}
+     ORDER BY nc.issue_date DESC, nc.id DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY`,
+    params,
+  );
+
+  return {
+    items: commResult.recordset,
+    pagination: {
+      page: normalizedPage,
+      limit: normalizedLimit,
+      total,
+      total_pages: Math.ceil(total / normalizedLimit) || 0,
+    },
+  };
+};
+
+const checkCommissionOwnership = async (commId, notaryId, txQuery = query) => {
+  const result = await txQuery(
+    `SELECT id FROM Notary_commissions WHERE id = @commId AND notary_id = @notaryId`,
+    { commId, notaryId },
+  );
+  return result.recordset[0] || null;
+};
+
+const insertCommissionRecord = async (notaryId, commStateId, data, txQuery = query) => {
+  const result = await txQuery(
+    `INSERT INTO Notary_commissions (notary_id, commission_state_id, commission_number, issue_date, expiration_date, status, is_renewal_applied, expected_renewal_date)
+     OUTPUT INSERTED.id
+     VALUES (@notaryId, @commStateId, @commNumber, @issueDate, @expirationDate, @status, @isRenewal, @expectedRenewal)`,
+    {
+      notaryId,
+      commStateId,
+      commNumber: data.commission_number || null,
+      issueDate: data.issue_date || null,
+      expirationDate: data.expiration_date || null,
+      status: data.risk_status,
+      isRenewal: data.is_renewal_applied ? 1 : 0,
+      expectedRenewal: data.expected_renewal_date || null,
+    },
+  );
+  return result.recordset[0]?.id;
+};
+
+const updateCommissionRecord = async (commId, commStateId, data, txQuery = query) => {
+  await txQuery(
+    `UPDATE Notary_commissions SET
+       commission_state_id = @commStateId,
+       commission_number = COALESCE(@commNumber, commission_number),
+       issue_date = COALESCE(@issueDate, issue_date),
+       expiration_date = COALESCE(@expirationDate, expiration_date),
+       status = @status,
+       is_renewal_applied = COALESCE(@isRenewal, is_renewal_applied),
+       expected_renewal_date = COALESCE(@expectedRenewal, expected_renewal_date)
+     WHERE id = @commId`,
+    {
+      commId,
+      commStateId,
+      commNumber: data.commission_number || null,
+      issueDate: data.issue_date || null,
+      expirationDate: data.expiration_date || null,
+      status: data.risk_status,
+      isRenewal: data.is_renewal_applied !== undefined ? (data.is_renewal_applied ? 1 : 0) : null,
+      expectedRenewal: data.expected_renewal_date || null,
+    },
+  );
+};
+
+const insertAuthorityScope = async (commId, authType, txQuery = query) => {
+  await txQuery(
+    'INSERT INTO Authority_scope (commission_id, authority_type) VALUES (@commId, @authType)',
+    { commId, authType },
+  );
+};
+
+const deleteAuthorityScopes = async (commId, txQuery = query) => {
+  await txQuery('DELETE FROM Authority_scope WHERE commission_id = @commId', { commId });
+};
+
+const deleteCommissionRecord = async (commId, notaryId, txQuery = query) => {
+  await txQuery('DELETE FROM Notary_commissions WHERE id = @commId AND notary_id = @notaryId', {
+    commId,
+    notaryId,
+  });
+};
+
 module.exports = {
   findAll,
   findById,
@@ -1171,4 +1367,17 @@ module.exports = {
   getIncidents,
   createIncident,
   computeRiskStatus,
+
+  // ─── SC003: Personal Info (dev-trongtuan) ───
+  getPersonalInfoById,
+  updatePersonalInfo,
+
+  // ─── SC004: Commission (dev-trongtuan) ───
+  resolveCommissionStateId,
+  checkCommissionOwnership,
+  insertCommissionRecord,
+  updateCommissionRecord,
+  insertAuthorityScope,
+  deleteAuthorityScopes,
+  deleteCommissionRecord,
 };

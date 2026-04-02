@@ -2,6 +2,7 @@ const notaryModel = require('../models/notary.model');
 const documentService = require('../services/document.service');
 const auditService = require('../services/audit.service');
 const notaryProfileService = require('../services/notary-profile.service');
+const commissionService = require('../services/commission.service');
 const { isAppError } = require('../utils/app-error');
 const { sendSuccess, sendError } = require('../utils/response.helper');
 
@@ -35,7 +36,12 @@ const createNotary = async (req, res) => {
       return sendError(res, 'full_name and email are required', 400);
     }
     const id = await notaryModel.create(req.body);
-    return sendSuccess(res, { id: `#${id}`, status: 'PENDING' }, 'Notary created successfully', 201);
+    return sendSuccess(
+      res,
+      { id: `#${id}`, status: 'PENDING' },
+      'Notary created successfully',
+      201,
+    );
   } catch (err) {
     console.error('[createNotary]', err.message);
     return sendError(res, 'Failed to create notary', 500);
@@ -137,12 +143,12 @@ const createCommission = async (req, res) => {
     const notary = await notaryModel.findById(id);
     if (!notary) return sendError(res, `Notary #${id} not found`, 404);
 
-    const result = await notaryModel.createCommission(id, req.body);
+    const result = await commissionService.createCommission(id, req.body);
     return sendSuccess(
       res,
       { id: `#${result.id}`, risk_status: result.risk_status },
       'Commission created successfully',
-      201
+      201,
     );
   } catch (err) {
     console.error('[createCommission]', err.message);
@@ -153,8 +159,8 @@ const createCommission = async (req, res) => {
 // ─── 10. PATCH /api/v1/notaries/:id/commissions/:cid ─────────────────────────
 const updateCommission = async (req, res) => {
   try {
-    const { cid } = req.params;
-    const result = await notaryModel.updateCommission(cid, req.body);
+    const { id, cid } = req.params;
+    const result = await commissionService.updateCommission(id, cid, req.body);
     return sendSuccess(res, result, 'Commission updated successfully');
   } catch (err) {
     console.error('[updateCommission]', err.message);
@@ -341,6 +347,37 @@ const createIncident = async (req, res) => {
   }
 };
 
+// ============================================================================
+// dev-trongtuan (SC003 & SC004)
+// ============================================================================
+
+// ─── SC003: Personal Info ───────────────────────────────────────────────────
+const updatePersonalInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await notaryProfileService.updatePersonalInfo({
+      notaryId: id,
+      changes: req.body,
+      actorId: req.auditContext?.actorId || req.user?.id || null,
+    });
+    return sendSuccess(res, result, 'Personal information updated successfully');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to update personal info', 'updatePersonalInfo');
+  }
+};
+
+// ─── SC004: Delete Commission ───────────────────────────────────────────────
+const deleteCommission = async (req, res) => {
+  try {
+    const { id, commission_id } = req.params;
+    const result = await commissionService.deleteCommission(id, commission_id);
+    if (!result) return sendError(res, 'Commission not found', 404);
+    return sendSuccess(res, result, 'Commission deleted successfully');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to delete commission', 'deleteCommission');
+  }
+};
+
 module.exports = {
   getNotaryList,
   createNotary,
@@ -364,4 +401,8 @@ module.exports = {
   getAuditLogs,
   getIncidents,
   createIncident,
+  // ─── SC003: Personal Info (dev-trongtuan) ───
+  updatePersonalInfo,
+  // ─── SC004: Commission (dev-trongtuan) ───
+  deleteCommission,
 };
