@@ -97,6 +97,26 @@ CREATE TABLE notary_service_areas (
 
 END
 
+-- ── 4a. notary_languages ──
+IF OBJECT_ID ('notary_languages', 'U') IS NULL
+BEGIN
+CREATE TABLE notary_languages (
+    id          INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id   INT NOT NULL REFERENCES notaries (id),
+    language_id INT NOT NULL REFERENCES Languages (id)
+);
+END
+
+-- ── 4b. notary_blackout_dates ──
+IF OBJECT_ID ('notary_blackout_dates', 'U') IS NULL
+BEGIN
+CREATE TABLE notary_blackout_dates (
+    id            INT PRIMARY KEY IDENTITY (1, 1),
+    notary_id     INT  NOT NULL REFERENCES notaries (id),
+    blackout_date DATE NOT NULL
+);
+END
+
 -- ── 5. Job ──
 IF OBJECT_ID ('Job', 'U') IS NULL
 BEGIN
@@ -381,6 +401,18 @@ INSERT INTO States (id, state_code, state_name) VALUES
     (49, 'WI', 'Wisconsin'),
     (50, 'WY', 'Wyoming');
 SET IDENTITY_INSERT States OFF;
+END
+
+-- ── Seed: Languages ──
+IF NOT EXISTS (SELECT 1 FROM Languages)
+BEGIN
+SET IDENTITY_INSERT Languages ON;
+INSERT INTO Languages (id, lang_code, lang_name) VALUES
+    (1, 'EN', 'English'),
+    (2, 'ES', 'Spanish'),
+    (3, 'FR', 'French'),
+    (4, 'VI', 'Vietnamese');
+SET IDENTITY_INSERT Languages OFF;
 END
 
 -- ── Seed: notaries ──
@@ -804,6 +836,9 @@ UNION ALL SELECT 'job_status_logs',         COUNT(*) FROM job_status_logs
 UNION ALL SELECT 'events',                  COUNT(*) FROM events
 UNION ALL SELECT 'notifications',           COUNT(*) FROM notifications;
 GO
+
+ALTER TABLE Notary_insurances
+ADD effective_date DATE NULL;
 
 PRINT 'notarial_db khởi tạo thành công!';
 GO

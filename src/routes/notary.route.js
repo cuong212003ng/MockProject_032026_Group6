@@ -517,6 +517,9 @@ router.get(
  *                 type: string
  *               ins_coverage:
  *                 type: number
+ *               ins_effective_date:
+ *                 type: string
+ *                 format: date
  *               ins_expiry:
  *                 type: string
  *                 format: date
@@ -638,6 +641,10 @@ router.get(
  *                       type: integer
  *                     county_name:
  *                       type: string
+ *               languages:
+ *                 type: array
+ *                 items:
+ *                   type: integer
  *     responses:
  *       200:
  *         description: Capabilities updated
@@ -707,6 +714,11 @@ router.get(
  *               fixed_days_off:
  *                 type: string
  *                 example: 'Saturday,Sunday'
+ *               blackout_dates:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: date
  *     responses:
  *       200:
  *         description: Availability set
