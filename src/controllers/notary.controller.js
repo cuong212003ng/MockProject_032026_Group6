@@ -372,9 +372,13 @@ const deleteCommission = async (req, res) => {
     const { id, commission_id } = req.params;
     const result = await commissionService.deleteCommission(id, commission_id);
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (!result) return sendError(res, 'Commission not found', 404);
 =======
 >>>>>>> 193e439 (test: add unit test api sc003 sc004)
+=======
+    if (!result) return sendError(res, 'Commission not found', 404);
+>>>>>>> 69dd5ac (fix: err unit test sc003 and sc004)
     return sendSuccess(res, result, 'Commission deleted successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to delete commission', 'deleteCommission');
