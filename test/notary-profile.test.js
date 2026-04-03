@@ -30,10 +30,17 @@ const app = require('../src/index');
 const originalState = {
   findById: notaryModel.findById,
   listDocuments: documentService.listDocuments,
+  getDocumentDetail: documentService.getDocumentDetail,
+  createDocument: documentService.createDocument,
   uploadDocument: documentService.uploadDocument,
+  updateDocument: documentService.updateDocument,
   verifyDocument: documentService.verifyDocument,
+  deleteDocument: documentService.deleteDocument,
   getAuditLogs: auditService.getAuditLogs,
+  getAuditTrail: auditService.getAuditTrail,
+  getAuditTrailDetail: auditService.getAuditTrailDetail,
   getIncidents: auditService.getIncidents,
+  getRecentActivities: auditService.getRecentActivities,
   createIncident: auditService.createIncident,
 };
 
@@ -86,20 +93,56 @@ const resetStubs = () => {
     },
   });
 
+  documentService.getDocumentDetail = async ({ notaryId, docId }) => ({
+    doc_id: Number(docId),
+    notary_id: Number(notaryId),
+    document_type: 'COMMISSION_CER',
+    file_name: 'commission.pdf',
+    verified_status: 'PENDING',
+    version: 2,
+    file_url: '/uploads/notary-documents/1/commission.pdf',
+  });
+
+  documentService.createDocument = async ({ notaryId, body }) => ({
+    doc_id: 201,
+    notary_id: Number(notaryId),
+    document_type: body.document_type,
+    file_name: body.file_name || 'commission.pdf',
+    verified_status: body.status || 'PENDING',
+    version: 1,
+    file_url: body.file_url || '/uploads/notary-documents/1/commission.pdf',
+  });
+
   documentService.uploadDocument = async ({ notaryId, body, file }) => ({
     doc_id: 202,
     notary_id: Number(notaryId),
     document_type: body.document_type,
-    file_name: file.originalname,
-    verified_status: 'PENDING',
+    file_name: file?.originalname || body.file_name || 'commission.pdf',
+    verified_status: body.status || 'PENDING',
     version: 3,
-    file_url: file.storageUrl,
+    file_url: file?.storageUrl || body.file_url || '/uploads/notary-documents/1/commission.pdf',
+  });
+
+  documentService.updateDocument = async ({ notaryId, docId, payload }) => ({
+    doc_id: Number(docId),
+    notary_id: Number(notaryId),
+    document_type: payload.document_type || 'COMMISSION_CER',
+    file_name: payload.file_name || 'commission-v2.pdf',
+    verified_status: payload.status || 'APPROVED',
+    version: payload.version || 3,
+    file_url: payload.file_url || '/uploads/notary-documents/1/commission-v2.pdf',
   });
 
   documentService.verifyDocument = async ({ notaryId, docId, status }) => ({
     doc_id: Number(docId),
     notary_id: Number(notaryId),
     verified_status: status,
+  });
+
+  documentService.deleteDocument = async ({ docId }) => ({
+    id: Number(docId),
+    status: 'INACTIVE',
+    deleted_at: '2026-04-03T03:00:00.000Z',
   });
 
   auditService.getAuditLogs = async ({ notaryId }) => ({
@@ -121,6 +164,32 @@ const resetStubs = () => {
     },
   });
 
+  auditService.getAuditTrail = async ({ notaryId }) => ({
+    items: [
+      {
+        id: 301,
+        notary_id: Number(notaryId),
+        action: 'UPDATE',
+        old_value: { status: 'PENDING' },
+        new_value: { status: 'APPROVED' },
+        changed_fields: [{ field: 'status', before: 'PENDING', after: 'APPROVED' }],
+      },
+    ],
+    pagination: {
+      current_page: 1,
+      total_items: 1,
+      total_pages: 1,
+      limit: 10,
+    },
+  });
+
+  auditService.getAuditTrailDetail = async ({ notaryId, auditId }) => ({
+    id: Number(auditId),
+    notary_id: Number(notaryId),
+    action: 'UPDATE',
+    changed_fields: [{ field: 'status', before: 'PENDING', after: 'APPROVED' }],
+  });
+
   auditService.getIncidents = async ({ notaryId }) => ({
     items: [
       {
@@ -138,6 +207,16 @@ const resetStubs = () => {
     },
   });
 
+  auditService.getRecentActivities = async () => [
+    {
+      action_type: 'Document Uploaded',
+      description: 'New document uploaded to the system',
+      document_name: 'commission.pdf',
+      performed_by: 1,
+      timestamp: '2026-04-03T03:00:00.000Z',
+    },
+  ];
+
   auditService.createIncident = async ({ notaryId, payload }) => ({
     inc_id: 402,
     notary_id: Number(notaryId),
@@ -149,10 +228,17 @@ const resetStubs = () => {
 test.after(() => {
   notaryModel.findById = originalState.findById;
   documentService.listDocuments = originalState.listDocuments;
+  documentService.getDocumentDetail = originalState.getDocumentDetail;
+  documentService.createDocument = originalState.createDocument;
   documentService.uploadDocument = originalState.uploadDocument;
+  documentService.updateDocument = originalState.updateDocument;
   documentService.verifyDocument = originalState.verifyDocument;
+  documentService.deleteDocument = originalState.deleteDocument;
   auditService.getAuditLogs = originalState.getAuditLogs;
+  auditService.getAuditTrail = originalState.getAuditTrail;
+  auditService.getAuditTrailDetail = originalState.getAuditTrailDetail;
   auditService.getIncidents = originalState.getIncidents;
+  auditService.getRecentActivities = originalState.getRecentActivities;
   auditService.createIncident = originalState.createIncident;
 
   fs.rmSync(process.env.UPLOAD_DIR, { recursive: true, force: true });
@@ -214,6 +300,16 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
     assert.equal(response.body.data.pagination.total_items, 1);
   });
 
+  await t.test('user can read own document detail', async () => {
+    const response = await request(app)
+      .get('/api/v1/notaries/1/documents/101')
+      .set('Authorization', `Bearer ${userOwnToken}`);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data.doc_id, 101);
+  });
+
   await t.test('user is blocked from another profile documents', async () => {
     const response = await request(app)
       .get('/api/v1/notaries/1/documents')
@@ -232,7 +328,11 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     assert.equal(response.statusCode, 400);
+=======
+    assert.equal(response.statusCode, 422);
+>>>>>>> 1b0a648 (Add SC007 and SC008 document/audit APIs)
     assert.equal(response.body.success, false);
     assert.match(response.body.message, /file is required/i);
 =======
@@ -278,6 +378,52 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
     assert.match(response.body.data.file_url, /^\/uploads\/notary-documents\/1\//);
   });
 
+  await t.test('create document succeeds with json payload', async () => {
+    const response = await request(app)
+      .post('/api/v1/notaries/1/documents')
+      .set('Authorization', `Bearer ${userOwnToken}`)
+      .send({
+        document_type: 'COMMISSION_CER',
+        file_name: 'commission.pdf',
+        file_url: 'https://files.example.com/commission.pdf',
+        status: 'PENDING',
+      });
+
+    assert.equal(response.statusCode, 201);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data.document_type, 'COMMISSION_CER');
+  });
+
+  await t.test('upload alias route succeeds', async () => {
+    const response = await request(app)
+      .post('/api/v1/notaries/1/documents/upload')
+      .set('Authorization', `Bearer ${userOwnToken}`)
+      .field('document_type', 'COMMISSION_CER')
+      .attach('file', Buffer.from('%PDF-1.4 test file'), {
+        filename: 'commission.pdf',
+        contentType: 'application/pdf',
+      });
+
+    assert.equal(response.statusCode, 201);
+    assert.equal(response.body.status, 'success');
+  });
+
+  await t.test('admin can update a document', async () => {
+    const response = await request(app)
+      .put('/api/v1/notaries/1/documents/202')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        document_type: 'COMMISSION_CER',
+        file_name: 'commission-v2.pdf',
+        status: 'APPROVED',
+        version: 3,
+      });
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data.file_name, 'commission-v2.pdf');
+  });
+
   await t.test('admin can verify a document', async () => {
     const response = await request(app)
       .patch('/api/v1/notaries/1/documents/202/verify')
@@ -297,6 +443,16 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
 
     assert.equal(response.statusCode, 403);
     assert.equal(response.body.status, 'error');
+  });
+
+  await t.test('admin can delete a document', async () => {
+    const response = await request(app)
+      .delete('/api/v1/notaries/1/documents/202')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data.status, 'INACTIVE');
   });
 
   await t.test('admin can read audit logs with pagination wrapper', async () => {
@@ -319,6 +475,36 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
     assert.equal(response.body.status, 'success');
     assert.equal(response.body.data.items[0].status, 'OPEN');
     assert.equal(response.body.data.pagination.total_items, 1);
+  });
+
+  await t.test('admin can read audit trails via alias route', async () => {
+    const response = await request(app)
+      .get('/api/v1/notaries/1/audit-trails?page=1&limit=10')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data.items[0].changed_fields[0].field, 'status');
+  });
+
+  await t.test('admin can read audit trail detail', async () => {
+    const response = await request(app)
+      .get('/api/v1/notaries/1/audit-trails/301')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data.id, 301);
+  });
+
+  await t.test('admin can read recent activities', async () => {
+    const response = await request(app)
+      .get('/api/v1/notaries/1/activities?limit=5')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data[0].action_type, 'Document Uploaded');
   });
 });
 <<<<<<< HEAD

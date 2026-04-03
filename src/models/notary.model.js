@@ -814,8 +814,52 @@ const setAvailability = async (notaryId, data) => {
 };
 
 // ─── 17. Danh sách Documents ─────────────────────────────────────────────────
+const DOCUMENT_SELECT_FIELDS = `
+  id AS doc_id,
+  notary_id,
+  doc_category AS document_type,
+  file_name,
+  upload_date,
+  verified_status,
+  version,
+  is_current_version,
+  file_url
+`;
+
+const normalizeDateRangeFilters = (filters = {}, supportedRanges = {}) => {
+  const normalized = { ...filters };
+  const rangeValue = filters.date_range || filters.time_range;
+
+  if (!rangeValue || rangeValue === 'custom') {
+    return normalized;
+  }
+
+  const dayCount = supportedRanges[rangeValue];
+  if (!dayCount) {
+    return normalized;
+  }
+
+  const fromDate = new Date();
+  fromDate.setDate(fromDate.getDate() - dayCount);
+
+  if (!normalized.from_date) {
+    normalized.from_date = fromDate.toISOString().slice(0, 10);
+  }
+
+  if (!normalized.to_date) {
+    normalized.to_date = new Date().toISOString().slice(0, 10);
+  }
+
+  return normalized;
+};
+
 const buildDocumentFilters = (notaryId, filters = {}, options = {}) => {
-  const { currentOnly = true } = options;
+  const { currentOnly = true, excludeInactive = true } = options;
+  const normalizedFilters = normalizeDateRangeFilters(filters, {
+    last_7_days: 7,
+    last_30_days: 30,
+    last_90_days: 90,
+  });
   const whereClauses = ['notary_id = @notaryId'];
   const params = { notaryId };
 
@@ -823,24 +867,33 @@ const buildDocumentFilters = (notaryId, filters = {}, options = {}) => {
     whereClauses.push('is_current_version = 1');
   }
 
-  if (filters.document_type) {
+  if (excludeInactive) {
+    whereClauses.push("(verified_status IS NULL OR verified_status <> 'INACTIVE')");
+  }
+
+  if (normalizedFilters.document_type) {
     whereClauses.push('doc_category = @documentType');
-    params.documentType = filters.document_type;
+    params.documentType = normalizedFilters.document_type;
   }
 
-  if (filters.status) {
+  if (normalizedFilters.status) {
     whereClauses.push('verified_status = @status');
-    params.status = filters.status;
+    params.status = normalizedFilters.status;
   }
 
-  if (filters.from_date) {
+  if (normalizedFilters.from_date) {
     whereClauses.push('upload_date >= @fromDate');
-    params.fromDate = filters.from_date;
+    params.fromDate = normalizedFilters.from_date;
   }
 
-  if (filters.to_date) {
+  if (normalizedFilters.to_date) {
     whereClauses.push('upload_date < DATEADD(DAY, 1, @toDate)');
-    params.toDate = filters.to_date;
+    params.toDate = normalizedFilters.to_date;
+  }
+
+  if (normalizedFilters.search) {
+    whereClauses.push('file_name LIKE @search');
+    params.search = `%${normalizedFilters.search}%`;
   }
 
   return {
@@ -865,15 +918,7 @@ const listDocumentsPage = async (notaryId, filters = {}, { offset = 0, limit = 1
   const { whereClause, params } = buildDocumentFilters(notaryId, filters);
   const result = await query(
     `SELECT
-       id AS doc_id,
-       notary_id,
-       doc_category AS document_type,
-       file_name,
-       upload_date,
-       verified_status,
-       version,
-       is_current_version,
-       file_url
+       ${DOCUMENT_SELECT_FIELDS}
      FROM Notary_documents
      ${whereClause}
      ORDER BY upload_date DESC, id DESC
@@ -892,15 +937,7 @@ const listDocuments = async (notaryId, { document_type, status } = {}) => {
 const findDocumentById = async (docId, notaryId = null) => {
   let documentQuery = `
     SELECT
-      id AS doc_id,
-      notary_id,
-      doc_category AS document_type,
-      file_name,
-      upload_date,
-      verified_status,
-      version,
-      is_current_version,
-      file_url
+      ${DOCUMENT_SELECT_FIELDS}
     FROM Notary_documents
     WHERE id = @docId
   `;
@@ -958,6 +995,93 @@ const insertDocumentVersion = async (
   );
 
   return result.recordset[0] || null;
+};
+
+const updateDocumentById = async (docId, notaryId, changes = {}, queryExecutor = query) => {
+  const runQuery = queryExecutor || query;
+  const fields = [];
+  const params = { docId, notaryId };
+
+  if (changes.document_type !== undefined) {
+    fields.push('doc_category = @documentType');
+    params.documentType = changes.document_type;
+  } else if (changes.doc_category !== undefined) {
+    fields.push('doc_category = @documentType');
+    params.documentType = changes.doc_category;
+  }
+
+  if (changes.file_name !== undefined) {
+    fields.push('file_name = @fileName');
+    params.fileName = changes.file_name;
+  }
+
+  if (changes.file_url !== undefined) {
+    fields.push('file_url = @fileUrl');
+    params.fileUrl = changes.file_url;
+  }
+
+  if (changes.upload_date !== undefined) {
+    fields.push('upload_date = @uploadDate');
+    params.uploadDate = changes.upload_date;
+  }
+
+  if (changes.status !== undefined) {
+    fields.push('verified_status = @verifiedStatus');
+    params.verifiedStatus = changes.status;
+  } else if (changes.verified_status !== undefined) {
+    fields.push('verified_status = @verifiedStatus');
+    params.verifiedStatus = changes.verified_status;
+  }
+
+  if (changes.version !== undefined) {
+    fields.push('version = @version');
+    params.version = changes.version;
+  }
+
+  if (changes.is_current_version !== undefined) {
+    fields.push('is_current_version = @isCurrentVersion');
+    params.isCurrentVersion = changes.is_current_version ? 1 : 0;
+  }
+
+  if (fields.length === 0) {
+    return findDocumentById(docId, notaryId);
+  }
+
+  if (params.isCurrentVersion === 1) {
+    await runQuery(
+      `UPDATE Notary_documents
+       SET is_current_version = 0
+       WHERE notary_id = @notaryId AND id <> @docId AND doc_category = COALESCE(@documentType, doc_category)`,
+      params,
+    );
+  }
+
+  await runQuery(
+    `UPDATE Notary_documents
+     SET ${fields.join(', ')}
+     WHERE id = @docId AND notary_id = @notaryId`,
+    params,
+  );
+
+  return findDocumentById(docId, notaryId);
+};
+
+const softDeleteDocumentById = async (docId, notaryId, queryExecutor = query) => {
+  const runQuery = queryExecutor || query;
+
+  await runQuery(
+    `UPDATE Notary_documents
+     SET verified_status = 'INACTIVE',
+         is_current_version = 0
+     WHERE id = @docId AND notary_id = @notaryId`,
+    { docId, notaryId },
+  );
+
+  return {
+    id: Number(docId),
+    status: 'INACTIVE',
+    deleted_at: new Date().toISOString(),
+  };
 };
 
 /* eslint-disable no-unused-vars */
@@ -1047,15 +1171,7 @@ const updateDocumentVerificationStatus = async (docId, notaryId, status, queryEx
 
   const result = await runQuery(
     `SELECT
-       id AS doc_id,
-       notary_id,
-       doc_category AS document_type,
-       file_name,
-       upload_date,
-       verified_status,
-       version,
-       is_current_version,
-       file_url
+       ${DOCUMENT_SELECT_FIELDS}
      FROM Notary_documents
      WHERE id = @docId AND notary_id = @notaryId`,
     { docId, notaryId },
@@ -1074,17 +1190,22 @@ const verifyDocument = async (docId, status) => {
 };
 
 const buildAuditLogFilters = (notaryId, filters = {}) => {
+  const normalizedFilters = normalizeDateRangeFilters(filters, {
+    last_day: 1,
+    last_7_days: 7,
+    last_30_days: 30,
+  });
   const whereClauses = ['notary_id = @notaryId'];
   const params = { notaryId };
 
-  if (filters.from_date) {
+  if (normalizedFilters.from_date) {
     whereClauses.push('created_at >= @fromDate');
-    params.fromDate = filters.from_date;
+    params.fromDate = normalizedFilters.from_date;
   }
 
-  if (filters.to_date) {
+  if (normalizedFilters.to_date) {
     whereClauses.push('created_at < DATEADD(DAY, 1, @toDate)');
-    params.toDate = filters.to_date;
+    params.toDate = normalizedFilters.to_date;
   }
 
   return {
@@ -1117,6 +1238,17 @@ const getAuditLogsPage = async (notaryId, filters = {}, { offset = 0, limit = 10
   );
 
   return result.recordset;
+};
+
+const findAuditLogById = async (auditId, notaryId) => {
+  const result = await query(
+    `SELECT id, table_name, record_id, action, old_value, new_value, change_by, created_at
+     FROM Notary_audit_logs
+     WHERE id = @auditId AND notary_id = @notaryId`,
+    { auditId, notaryId },
+  );
+
+  return result.recordset[0] || null;
 };
 
 /* eslint-disable no-unused-vars */
@@ -1458,6 +1590,8 @@ module.exports = {
   countDocuments,
   listDocumentsPage,
   findDocumentById,
+  updateDocumentById,
+  softDeleteDocumentById,
   insertDocumentVersion,
   updateDocumentVerificationStatus,
   listDocuments,
@@ -1465,6 +1599,7 @@ module.exports = {
   verifyDocument,
   countAuditLogs,
   getAuditLogsPage,
+  findAuditLogById,
   getAuditLogs,
   countIncidents,
   getIncidentsPage,
