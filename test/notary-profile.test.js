@@ -29,6 +29,7 @@ const app = require('../src/index');
 
 const originalState = {
   findById: notaryModel.findById,
+  deleteNotary: notaryModel.deleteNotary,
   listDocuments: documentService.listDocuments,
   getDocumentDetail: documentService.getDocumentDetail,
   createDocument: documentService.createDocument,
@@ -71,6 +72,12 @@ const resetStubs = () => {
     };
 
     return map[String(id)] || null;
+  };
+
+  notaryModel.deleteNotary = async (id) => {
+    const notary = await notaryModel.findById(id);
+    if (!notary) return null;
+    return { id: Number(id), status: 'DELETED' };
   };
 
   documentService.listDocuments = async ({ notaryId }) => ({
@@ -246,6 +253,7 @@ const resetStubs = () => {
 
 test.after(() => {
   notaryModel.findById = originalState.findById;
+  notaryModel.deleteNotary = originalState.deleteNotary;
   documentService.listDocuments = originalState.listDocuments;
 <<<<<<< HEAD
   documentService.getDocumentDetail = originalState.getDocumentDetail;
@@ -347,6 +355,36 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
     assert.equal(response.statusCode, 403);
     assert.equal(response.body.status, 'error');
     assert.equal(response.body.message, 'Access denied');
+  });
+
+  await t.test('admin can delete a notary', async () => {
+    const response = await request(app)
+      .delete('/api/v1/notaries/1')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data.id, 1);
+    assert.equal(response.body.data.status, 'DELETED');
+  });
+
+  await t.test('user cannot delete a notary', async () => {
+    const response = await request(app)
+      .delete('/api/v1/notaries/1')
+      .set('Authorization', `Bearer ${userOwnToken}`);
+
+    assert.equal(response.statusCode, 403);
+    assert.equal(response.body.status, 'error');
+  });
+
+  await t.test('admin gets 404 for non-existent notary delete', async () => {
+    const response = await request(app)
+      .delete('/api/v1/notaries/999')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 404);
+    assert.equal(response.body.status, 'error');
+    assert.equal(response.body.message, 'Notary not found');
   });
 
   await t.test('upload requires file', async () => {

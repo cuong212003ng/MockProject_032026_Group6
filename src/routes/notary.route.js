@@ -162,6 +162,62 @@ router.get('/:id', authorize('ADMIN'), validateNotaryIdParam, notaryController.g
 
 /**
  * @swagger
+ * /api/v1/notaries/{id}:
+ *   delete:
+ *     summary: Delete a notary (soft delete)
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Notary deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Notary deleted successfully
+ *                 data:
+ *                   nullable: true
+ *                   type: object
+ *       404:
+ *         description: Notary not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Notary not found
+ *                 data:
+ *                   nullable: true
+ *                   type: object
+ */
+router.delete('/:id', authorize('ADMIN'), validateNotaryIdParam, notaryController.deleteNotary);
+
+/**
+ * @swagger
  * /api/v1/notaries/{id}/bio:
  *   patch:
  *     summary: Update notary bio (phone, email, address, photo, notes)
@@ -612,6 +668,65 @@ router.put(
  *         description: Commission deleted
  *       404:
  *         description: Commission not found
+ */
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/commissions/{commission_id}:
+ *   delete:
+ *     summary: Delete a commission (SC004)
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: commission_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Commission deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Commission deleted successfully
+ *                 data:
+ *                   nullable: true
+ *                   type: object
+ *       404:
+ *         description: Commission not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Commission not found
+ *                 data:
+ *                   nullable: true
+ *                   type: object
  */
 router.delete(
   '/:id/commissions/:commission_id',

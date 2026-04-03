@@ -119,6 +119,19 @@ const findById = async (id) => {
   return result.recordset[0] || null;
 };
 
+// ─── 2.1. Xóa Notary (Soft Delete) ────────────────────────────────────────────
+const deleteNotary = async (id) => {
+  const notary = await findById(id);
+  if (!notary) return null;
+
+  await query('UPDATE notaries SET status = @status WHERE id = @id', {
+    id,
+    status: 'DELETED',
+  });
+
+  return { id: Number(id), status: 'DELETED' };
+};
+
 const findByUserId = async (userId) => {
   const result = await query(
     `SELECT
@@ -1607,6 +1620,7 @@ const deleteCommissionRecord = async (commId, notaryId, txQuery = query) => {
 module.exports = {
   findAll,
   findById,
+  deleteNotary,
   findByUserId,
   create,
   insertAuditLog,

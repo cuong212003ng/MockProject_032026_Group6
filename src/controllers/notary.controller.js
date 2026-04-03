@@ -88,6 +88,19 @@ const getNotaryById = async (req, res) => {
   }
 };
 
+// ─── 4. DELETE /api/v1/notaries/:id ───────────────────────────────────────────
+const deleteNotary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await notaryModel.deleteNotary(id);
+    if (!result) return sendError(res, 'Notary not found', 404);
+    return sendSuccess(res, result, 'Notary deleted successfully');
+  } catch (err) {
+    console.error('[deleteNotary]', err.message);
+    return sendError(res, 'Failed to delete notary', 500);
+  }
+};
+
 // ─── 4. PATCH /api/v1/notaries/:id/bio ───────────────────────────────────────
 const updateBio = async (req, res) => {
   try {
@@ -721,6 +734,7 @@ module.exports = {
   getNotaryList,
   createNotary,
   getNotaryById,
+  deleteNotary,
   updateBio,
   toggleStatus,
   getOverview,
