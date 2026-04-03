@@ -4,8 +4,9 @@
   "description": "Notarial Service – Hệ thống công chứng tại Mỹ (Nhóm 6)",
   "main": "src/index.js",
   "scripts": {
-    "start": "nodemon --inspect src/index.js",
+    "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "debug": "nodemon --inspect src/index.js",
     "lint": "eslint src/**/*.js test/**/*.js",
     "format": "prettier --write src/**/*.js test/**/*.js",
     "test": "node --test"

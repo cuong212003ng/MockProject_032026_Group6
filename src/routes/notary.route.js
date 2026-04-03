@@ -24,6 +24,7 @@ const {
   validateCommissionListQuery,
   validateCommissionPayload,
   validateCommissionUpdatePayload,
+  validateAvailabilityPayload,
 } = require('../middlewares/validate.middleware');
 
 // router.use(authenticate); // TODO: bật lại khi deploy
@@ -716,12 +717,40 @@ router.get(
  *                 example: '17:00'
  *               fixed_days_off:
  *                 type: string
- *                 example: 'Saturday,Sunday'
+ *                 example: 'sat,sun'
  *               blackout_dates:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: date
+ *               work_holiday:
+ *                 type: boolean
+ *                 description: Whether the notary works on holidays
+ *               holiday_preferences:
+ *                 type: object
+ *                 properties:
+ *                   federal:
+ *                     type: object
+ *                     properties:
+ *                       mode:
+ *                         type: string
+ *                         enum: [ALL, SELECTED, NONE]
+ *                       selected_holiday_ids:
+ *                         type: array
+ *                         items:
+ *                           type: integer
+ *                   state:
+ *                     type: object
+ *                     properties:
+ *                       mode:
+ *                         type: string
+ *                         enum: [ALL, SELECTED, NONE]
+ *                       state_id:
+ *                         type: integer
+ *                       selected_holiday_ids:
+ *                         type: array
+ *                         items:
+ *                           type: integer
  *     responses:
  *       200:
  *         description: Availability set
@@ -730,6 +759,7 @@ router.post(
   '/:id/availability',
   authorize('ADMIN'),
   validateNotaryIdParam,
+  validateAvailabilityPayload,
   notaryController.setAvailability,
 );
 

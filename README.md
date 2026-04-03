@@ -1,6 +1,7 @@
 # Notary Profile Module - Group 6 (JavaScript + NodeJS)
 
 ## Overview
+
 `Notary Profile` is the backend API module owned by the JavaScript/NodeJS team for this sprint. It covers the full notary profile management flow, from notary listing and personal profile details to compliance, service capability, documents, and audit trail.
 
 ## Tech Stack
@@ -15,6 +16,7 @@
 | Database   | SQL Server 2019 |
 
 ## Module Scope by Sprint Plan
+
 The `Notary Profile` module in this sprint includes the following scopes:
 
 - `SC_001_Notary_list`
@@ -33,6 +35,7 @@ In addition, the module includes shared cross-cutting concerns:
 - `Global API Response Wrapper`
 
 ## Task Ownership by Sprint Plan
+
 - `Nguyen Van Cuong`
   - `SC_001_Notary_list`
   - `SC_002_Overview`
@@ -86,6 +89,7 @@ database/
 ```
 
 ## Responsibility by Layer
+
 - `config/`: manages environment variables, database connection, database initialization, and Swagger configuration.
 - `routes/notary.route.js`: defines the HTTP endpoints of the Notary Profile module.
 - `middlewares/`: handles JWT authentication, RBAC, request validation, file upload, and audit context.
@@ -96,6 +100,7 @@ database/
 - `database/init.sql`: contains schema creation and seed data relevant to the Notary Profile module.
 
 ## Processing Flow
+
 Main processing flow of the module:
 
 `route -> middleware -> controller -> service -> model -> SQL Server`
@@ -103,38 +108,46 @@ Main processing flow of the module:
 ## Main APIs by Sprint Scope
 
 ### SC_001_Notary_list
+
 - `GET /api/v1/notaries`
 - `PATCH /api/v1/notaries/:id/status`
 
 ### SC_002_Overview
+
 - `GET /api/v1/notaries/:id/overview`
 - `GET /api/v1/notaries/:id/status-history`
 
 ### SC_003_Personal_Infor
+
 - `GET /api/v1/notaries/:id`
 - `PATCH /api/v1/notaries/:id/bio`
 
 ### SC_004_Legal&Commission
+
 - `GET /api/v1/notaries/:id/commissions`
 - `POST /api/v1/notaries/:id/commissions`
 - `PATCH /api/v1/notaries/:id/commissions/:cid`
 
 ### SC_005_Bond&Insurance
+
 - `GET /api/v1/notaries/:id/compliance`
 - `PUT /api/v1/notaries/:id/compliance`
 
 ### SC_006_Service_Capability
+
 - `GET /api/v1/notaries/:id/capabilities`
 - `PATCH /api/v1/notaries/:id/capabilities`
 - `GET /api/v1/notaries/:id/availability`
-- `POST /api/v1/notaries/:id/availability`
+- `POST /api/v1/notaries/:id/availability` (Supports Federal/State holiday modes: ALL, SELECTED, NONE)
 
 ### SC_007_Document
+
 - `GET /api/v1/notaries/:id/documents`
 - `POST /api/v1/notaries/:id/documents`
 - `PATCH /api/v1/notaries/:id/documents/:docId/verify`
 
 ### SC_008_Audit
+
 - `GET /api/v1/notaries/:id/audit-logs`
 - `GET /api/v1/notaries/:id/incidents`
 - `POST /api/v1/notaries/:id/incidents`
@@ -142,16 +155,19 @@ Main processing flow of the module:
 ## Security and Common Conventions
 
 ### Authentication and Authorization
+
 - JWT authentication with access token and refresh token
 - RBAC with `ADMIN` and `USER`
 - owner-based access control for user-level document APIs
 
 ### Validation
+
 - validation for params, query, and body
 - validation for pagination, date range, and enum status
 - validation for document file uploads
 
 ### Response Wrapper
+
 All APIs follow a unified response format:
 
 ```json
@@ -163,10 +179,12 @@ All APIs follow a unified response format:
 ```
 
 ### API Documentation
+
 - Swagger/OpenAPI is available for API review and testing
 - Swagger endpoint: `/api-docs`
 
 ## Database Touchpoints
+
 Main tables related to the `Notary Profile` module:
 
 - `notaries`
@@ -185,10 +203,17 @@ npm install
 # 2. Create .env from .env.example
 # Fill in database and JWT configuration
 
-# 3. Run development server
+#For Tester / Running Production environment:
 npm start
-```
+
+# 3. Available Scripts
+npm run dev     # Run development server (nodemon)
+npm start       # Run production server (node)
+npm run debug   # Run development server with V8 inspector
+npm test        # Run unit tests
 
 ## Verification
+
 - `npm run lint`
 - `npm test`
+```
