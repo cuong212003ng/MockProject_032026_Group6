@@ -837,8 +837,81 @@ UNION ALL SELECT 'events',                  COUNT(*) FROM events
 UNION ALL SELECT 'notifications',           COUNT(*) FROM notifications;
 GO
 
+-- Check if 'effective_date' column exists in 'Notary_insurances' table, if not, add it
+IF COL_LENGTH('Notary_insurances', 'effective_date') IS NULL
+BEGIN
 ALTER TABLE Notary_insurances
 ADD effective_date DATE NULL;
+END
+GO
 
 PRINT 'notarial_db khởi tạo thành công!';
 GO
+
+---- Updated according to charge requirements ----------------------------------------------
+
+-- Check if 'work_holiday' column exists in 'notaries' table, if not, add it
+IF COL_LENGTH('notaries', 'work_holiday') IS NULL
+BEGIN
+    ALTER TABLE notaries 
+    ADD work_holiday BIT NOT NULL DEFAULT 0;
+    
+    PRINT 'Da them cot work_holiday vao bang notaries';
+END
+GO
+
+-- Check if 'Holidays' table exists, if not, create it
+IF OBJECT_ID ('Holidays', 'U') IS NULL
+BEGIN
+CREATE TABLE Holidays (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    name NVARCHAR(100) NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('FEDERAL', 'STATE')),
+    state_id INT NULL REFERENCES States(id), -- NULL nếu là Federal
+    date_rule VARCHAR(100) NOT NULL -- Vd: '01-01', '3rd-Monday-01', '4th-Thursday-11'
+);
+END
+GO
+-- Seed data for Holidays table
+IF NOT EXISTS (SELECT 1 FROM Holidays)
+BEGIN
+SET IDENTITY_INSERT Holidays ON;
+INSERT INTO Holidays (id, name, type, state_id, date_rule) VALUES
+    (1, 'New Year''s Day', 'FEDERAL', NULL, '01-01'),
+    (2, 'Martin Luther King Jr. Day', 'FEDERAL', NULL, '3rd-Monday-01'),
+    (3, 'Washington''s Birthday', 'FEDERAL', NULL, '3rd-Monday-02'),
+    (4, 'Memorial Day', 'FEDERAL', NULL, 'Last-Monday-05'),
+    (5, 'Independence Day', 'FEDERAL', NULL, '07-04'),
+    (6, 'Labor Day', 'FEDERAL', NULL, '1st-Monday-09'),
+    (7, 'Columbus Day', 'FEDERAL', NULL, '2nd-Monday-10'),
+    (8, 'Veterans Day', 'FEDERAL', NULL, '11-11'),
+    (9, 'Thanksgiving Day', 'FEDERAL', NULL, '4th-Thursday-11'),
+    (10, 'Christmas Day', 'FEDERAL', NULL, '12-25'),
+    -- Texas State Holidays (state_id = 43 for Texas)
+    (11, 'Texas Independence Day', 'STATE', 43, '03-02'),
+    (12, 'Confederate Heroes Day', 'STATE', 43, '4th-Monday-01'),
+    (13, 'Emancipation Day', 'STATE', 43, '4th-Monday-06'),
+    (14, 'Lyndon B. Johnson''s Birthday', 'STATE', 43, '08-27'),
+    (15, 'Texas State Fair', 'STATE', 43, '1st-Friday-10');
+SET IDENTITY_INSERT Holidays OFF;
+END
+GO
+-- Check if holiday-related columns exist in 'notary_availabilities' table, if not, add them
+IF COL_LENGTH('notary_availabilities', 'federal_holiday_mode') IS NULL
+BEGIN
+ALTER TABLE notary_availabilities ADD
+    federal_holiday_mode VARCHAR(20) NOT NULL DEFAULT 'NONE' CHECK (federal_holiday_mode IN ('ALL', 'SELECTED', 'NONE')),
+    state_holiday_mode VARCHAR(20) NOT NULL DEFAULT 'NONE' CHECK (state_holiday_mode IN ('ALL', 'SELECTED', 'NONE')),
+    state_holiday_state_id INT NULL REFERENCES States(id);
+END
+GO
+
+-- Create linking table for notary and selected holidays if not exists
+IF OBJECT_ID ('notary_selected_holidays', 'U') IS NULL
+BEGIN
+CREATE TABLE notary_selected_holidays (
+    notary_id INT NOT NULL REFERENCES notaries(id) ON DELETE CASCADE,
+    holiday_id INT NOT NULL REFERENCES Holidays(id),
+    PRIMARY KEY (notary_id, holiday_id)
+);
+END

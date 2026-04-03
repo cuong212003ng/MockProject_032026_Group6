@@ -22,17 +22,17 @@ const authenticate = (req, res, next) => {
 
 const authorize =
   (...roles) =>
-  (req, res, next) => {
-    if (!req.user) {
-      return sendError(res, 'Authentication required', 401);
-    }
+    (req, res, next) => {
+      if (!req.user) {
+        return sendError(res, 'Authentication required', 401);
+      }
 
-    if (!roles.includes(req.user.role)) {
-      return sendError(res, `Access denied. Requires role: ${roles.join(', ')}`, 403);
-    }
+      if (!roles.includes(req.user.role)) {
+        return sendError(res, `Access denied. Requires role: ${roles.join(', ')}`, 403);
+      }
 
-    next();
-  };
+      next();
+    };
 
 const authorizeNotaryOwnerOrAdmin = async (req, res, next) => {
   try {

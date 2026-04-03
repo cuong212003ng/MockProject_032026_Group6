@@ -243,7 +243,7 @@ const getAvailability = async (req, res) => {
   }
 };
 
-// ─── 16. POST /api/v1/notaries/:id/availability ──────────────────────────────
+// ─── 16. PUT /api/v1/notaries/:id/availability ──────────────────────────────
 const setAvailability = async (req, res) => {
   try {
     const { id } = req.params;

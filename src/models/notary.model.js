@@ -1,4 +1,4 @@
-const { query } = require('../config/db');
+const { query, withTransaction } = require('../config/db');
 
 // ─── Commission Risk Engine ───────────────────────────────────────────────────
 const computeRiskStatus = (expirationDate) => {
@@ -686,8 +686,12 @@ const updateCapabilities = async (notaryId, data) => {
 // ─── 15. Xem Availability ────────────────────────────────────────────────────
 const getAvailability = async (notaryId) => {
   const result = await query(
-    `SELECT id, working_days_per_week, start_time, end_time, fixed_days_off
-     FROM notary_availabilities WHERE notary_id = @notaryId`,
+    `SELECT na.id, na.working_days_per_week, na.start_time, na.end_time, na.fixed_days_off,
+            na.federal_holiday_mode, na.state_holiday_mode, na.state_holiday_state_id,
+            n.work_holiday
+     FROM notary_availabilities na
+     LEFT JOIN notaries n ON n.id = na.notary_id
+     WHERE na.notary_id = @notaryId`,
     { notaryId },
   );
 
@@ -697,9 +701,38 @@ const getAvailability = async (notaryId) => {
     { notaryId },
   );
 
+  const selectedHolidaysResult = await query(
+    `SELECT nsh.holiday_id, h.type
+     FROM notary_selected_holidays nsh
+     JOIN Holidays h ON h.id = nsh.holiday_id
+     WHERE nsh.notary_id = @notaryId`,
+    { notaryId },
+  );
+
   const availability = result.recordset[0] || null;
   if (availability) {
-    availability.blackout_dates = blackoutResult.recordset.map(row => row.blackout_date);
+    availability.blackout_dates = blackoutResult.recordset.map((row) => row.blackout_date);
+    const federalHolidays = selectedHolidaysResult.recordset
+      .filter((row) => row.type === 'FEDERAL')
+      .map((row) => row.holiday_id);
+    const stateHolidays = selectedHolidaysResult.recordset
+      .filter((row) => row.type === 'STATE')
+      .map((row) => row.holiday_id);
+    availability.holiday_preferences = {
+      federal: {
+        mode: availability.federal_holiday_mode,
+        selected_holiday_ids: federalHolidays,
+      },
+      state: {
+        mode: availability.state_holiday_mode,
+        state_id: availability.state_holiday_state_id,
+        selected_holiday_ids: stateHolidays,
+      },
+    };
+    // Remove the individual fields from the root level
+    delete availability.federal_holiday_mode;
+    delete availability.state_holiday_mode;
+    delete availability.state_holiday_state_id;
   }
 
   return availability;
@@ -707,56 +740,113 @@ const getAvailability = async (notaryId) => {
 
 // ─── 16. Cài đặt Availability (UPSERT) ──────────────────────────────────────
 const setAvailability = async (notaryId, data) => {
-  const { working_days_per_week, start_time, end_time, fixed_days_off, blackout_dates } = data;
+  const {
+    working_days_per_week,
+    start_time,
+    end_time,
+    fixed_days_off,
+    blackout_dates,
+    work_holiday,
+    holiday_preferences,
+  } = data;
 
-  const exist = await query('SELECT id FROM notary_availabilities WHERE notary_id = @notaryId', {
-    notaryId,
-  });
+  return withTransaction(async ({ query: txQuery }) => {
+    // Update work_holiday in notaries table if provided
+    if (work_holiday !== undefined) {
+      await txQuery('UPDATE notaries SET work_holiday = @workHoliday WHERE id = @notaryId', {
+        notaryId,
+        workHoliday: work_holiday ? 1 : 0,
+      });
+    }
 
-  if (exist.recordset.length > 0) {
-    await query(
-      `UPDATE notary_availabilities SET
-         working_days_per_week = COALESCE(@wpw, working_days_per_week),
-         start_time = COALESCE(@startTime, start_time),
-         end_time = COALESCE(@endTime, end_time),
-         fixed_days_off = COALESCE(@fixedOff, fixed_days_off)
-       WHERE notary_id = @notaryId`,
+    // Upsert notary_availabilities
+    const exist = await txQuery(
+      'SELECT id FROM notary_availabilities WHERE notary_id = @notaryId',
       {
         notaryId,
-        wpw: working_days_per_week || null,
-        startTime: start_time || null,
-        endTime: end_time || null,
-        fixedOff: fixed_days_off || null,
       },
     );
-  } else {
-    await query(
-      `INSERT INTO notary_availabilities
-         (notary_id, working_days_per_week, start_time, end_time, fixed_days_off)
-       VALUES (@notaryId, @wpw, @startTime, @endTime, @fixedOff)`,
-      {
-        notaryId,
-        wpw: working_days_per_week || null,
-        startTime: start_time || null,
-        endTime: end_time || null,
-        fixedOff: fixed_days_off || null,
-      },
-    );
-  }
 
-  // Blackout dates replace
-  if (Array.isArray(blackout_dates)) {
-    await query('DELETE FROM notary_blackout_dates WHERE notary_id = @notaryId', { notaryId });
-    for (const date of blackout_dates) {
-      await query(
-        `INSERT INTO notary_blackout_dates (notary_id, blackout_date)
-         VALUES (@notaryId, @date)`,
-        { notaryId, date },
+    const federalMode = holiday_preferences?.federal?.mode || null;
+    const stateMode = holiday_preferences?.state?.mode || null;
+    const stateId = holiday_preferences?.state?.state_id || null;
+
+    if (exist.recordset.length > 0) {
+      await txQuery(
+        `UPDATE notary_availabilities SET
+           working_days_per_week = COALESCE(@wpw, working_days_per_week),
+           start_time = COALESCE(@startTime, start_time),
+           end_time = COALESCE(@endTime, end_time),
+           fixed_days_off = COALESCE(@fixedOff, fixed_days_off),
+           federal_holiday_mode = COALESCE(@federalMode, federal_holiday_mode),
+           state_holiday_mode = COALESCE(@stateMode, state_holiday_mode),
+           state_holiday_state_id = COALESCE(@stateId, state_holiday_state_id)
+         WHERE notary_id = @notaryId`,
+        {
+          notaryId,
+          wpw: working_days_per_week || null,
+          startTime: start_time || null,
+          endTime: end_time || null,
+          fixedOff: fixed_days_off || null,
+          federalMode: federalMode,
+          stateMode: stateMode,
+          stateId: stateId,
+        },
+      );
+    } else {
+      await txQuery(
+        `INSERT INTO notary_availabilities
+           (notary_id, working_days_per_week, start_time, end_time, fixed_days_off, federal_holiday_mode, state_holiday_mode, state_holiday_state_id)
+         VALUES (@notaryId, @wpw, @startTime, @endTime, @fixedOff, @federalMode, @stateMode, @stateId)`,
+        {
+          notaryId,
+          wpw: working_days_per_week || null,
+          startTime: start_time || null,
+          endTime: end_time || null,
+          fixedOff: fixed_days_off || null,
+          federalMode: federalMode,
+          stateMode: stateMode,
+          stateId: stateId,
+        },
       );
     }
-  }
 
-  return { status: 'success' };
+    // Delete existing records in notary_selected_holidays
+    await txQuery('DELETE FROM notary_selected_holidays WHERE notary_id = @notaryId', { notaryId });
+
+    // Insert selected holiday IDs from both federal and state
+    const selectedHolidayIds = [];
+
+    if (holiday_preferences?.federal?.selected_holiday_ids) {
+      selectedHolidayIds.push(...holiday_preferences.federal.selected_holiday_ids);
+    }
+
+    if (holiday_preferences?.state?.selected_holiday_ids) {
+      selectedHolidayIds.push(...holiday_preferences.state.selected_holiday_ids);
+    }
+
+    for (const holidayId of selectedHolidayIds) {
+      await txQuery(
+        `INSERT INTO notary_selected_holidays (notary_id, holiday_id)
+         VALUES (@notaryId, @holidayId)`,
+        { notaryId, holidayId },
+      );
+    }
+
+    // Blackout dates replace
+    if (Array.isArray(blackout_dates)) {
+      await txQuery('DELETE FROM notary_blackout_dates WHERE notary_id = @notaryId', { notaryId });
+      for (const date of blackout_dates) {
+        await txQuery(
+          `INSERT INTO notary_blackout_dates (notary_id, blackout_date)
+           VALUES (@notaryId, @date)`,
+          { notaryId, date },
+        );
+      }
+    }
+
+    return { status: 'success' };
+  });
 };
 
 // ─── 17. Danh sách Documents ─────────────────────────────────────────────────
@@ -1362,7 +1452,7 @@ const updatePersonalInfo = async (id, data) => {
 
 const resolveCommissionStateId = async (state) => {
   const stateResult = await query(
-    `SELECT TOP 1 id FROM States WHERE state_code = @state OR state_name = @state`,
+    'SELECT TOP 1 id FROM States WHERE state_code = @state OR state_name = @state',
     { state },
   );
   return stateResult.recordset[0]?.id || null;
@@ -1447,7 +1537,7 @@ const getCommissions = async (notaryId, filters = {}) => {
 
 const checkCommissionOwnership = async (commId, notaryId, txQuery = query) => {
   const result = await txQuery(
-    `SELECT id FROM Notary_commissions WHERE id = @commId AND notary_id = @notaryId`,
+    'SELECT id FROM Notary_commissions WHERE id = @commId AND notary_id = @notaryId',
     { commId, notaryId },
   );
   return result.recordset[0] || null;

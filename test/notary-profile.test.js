@@ -578,6 +578,176 @@ test('====== SC004: Commission API Tests ======', async (t) => {
     commissionService.deleteCommission = originalDelete;
   });
 });
+
+test('Notary DELETE + Availability endpoints integration tests', async (t) => {
+  const originalNotaryMethods = {
+    findById: notaryModel.findById,
+    getAvailability: notaryModel.getAvailability,
+    setAvailability: notaryModel.setAvailability,
+    softDeleteNotary: notaryModel.softDeleteNotary || notaryModel.softDelete || null,
+  };
+
+  t.after(() => {
+    notaryModel.findById = originalNotaryMethods.findById;
+    notaryModel.getAvailability = originalNotaryMethods.getAvailability;
+    notaryModel.setAvailability = originalNotaryMethods.setAvailability;
+    if (originalNotaryMethods.softDeleteNotary !== null) {
+      notaryModel.softDeleteNotary = originalNotaryMethods.softDeleteNotary;
+    }
+  });
+
+  await t.test('DELETE /api/v1/notaries/:id (ADMIN happy path)', async () => {
+    notaryModel.findById = async (id) => ({ id: Number(id), status: 'ACTIVE' });
+    notaryModel.softDeleteNotary = async (id) => ({ id: Number(id), status: 'INACTIVE' });
+
+    const response = await request(app)
+      .delete('/api/v1/notaries/1')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.success, true);
+    assert.equal(response.body.status, 'success');
+    assert.ok(response.body.message.toLowerCase().includes('delete'));
+    assert.deepEqual(response.body.data, { id: 1, status: 'INACTIVE' });
+  });
+
+  await t.test('DELETE /api/v1/notaries/:id (USER forbidden 403)', async () => {
+    const response = await request(app)
+      .delete('/api/v1/notaries/1')
+      .set('Authorization', `Bearer ${userOwnToken}`);
+
+    assert.equal(response.statusCode, 403);
+    assert.equal(response.body.success, false);
+    assert.equal(response.body.status, 'error');
+  });
+
+  await t.test('GET /api/v1/notaries/:id/availability (happy path 200)', async () => {
+    notaryModel.findById = async (id) => ({ id: Number(id), status: 'ACTIVE' });
+    notaryModel.getAvailability = async () => ({
+      working_days_per_week: 5,
+      start_time: '08:00',
+      end_time: '17:00',
+      fixed_days_off: 'sat,sun',
+      blackout_dates: ['2026-05-23'],
+      work_holiday: true,
+      holiday_preferences: {
+        federal: {
+          mode: 'SELECTED',
+          selected_holiday_ids: [1, 2, 4],
+        },
+        state: {
+          mode: 'ALL',
+          state_id: 5,
+          selected_holiday_ids: [],
+        },
+      },
+    });
+
+    const response = await request(app)
+      .get('/api/v1/notaries/1/availability')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.success, true);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data.work_holiday, true);
+    assert.deepEqual(response.body.data.holiday_preferences.federal, {
+      mode: 'SELECTED',
+      selected_holiday_ids: [1, 2, 4],
+    });
+    assert.deepEqual(response.body.data.holiday_preferences.state, {
+      mode: 'ALL',
+      state_id: 5,
+      selected_holiday_ids: [],
+    });
+  });
+
+  await t.test('GET /api/v1/notaries/:id/availability (404 not found)', async () => {
+    notaryModel.findById = async () => null;
+
+    const response = await request(app)
+      .get('/api/v1/notaries/999/availability')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 404);
+    assert.equal(response.body.success, false);
+    assert.equal(response.body.status, 'error');
+    assert.ok(response.body.message.includes('not found'));
+  });
+
+  await t.test('PUT /api/v1/notaries/:id/availability (happy path 200)', async () => {
+    notaryModel.findById = async (id) => ({ id: Number(id), status: 'ACTIVE' });
+    notaryModel.setAvailability = async (id, body) => ({ status: 'success', id, ...body });
+
+    const payload = {
+      working_days_per_week: 5,
+      start_time: '08:00',
+      end_time: '17:00',
+      fixed_days_off: 'sat,sun',
+      blackout_dates: ['2026-05-23'],
+      work_holiday: true,
+      holiday_preferences: {
+        federal: {
+          mode: 'SELECTED',
+          selected_holiday_ids: [1, 2, 4],
+        },
+        state: {
+          mode: 'ALL',
+          state_id: 5,
+          selected_holiday_ids: [],
+        },
+      },
+    };
+
+    const response = await request(app)
+      .put('/api/v1/notaries/1/availability')
+      .send(payload)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.success, true);
+    assert.equal(response.body.status, 'success');
+    assert.equal(response.body.data.status, 'success');
+  });
+
+  await t.test(
+    'PUT /api/v1/notaries/:id/availability (validation error 422 for invalid holiday mode)',
+    async () => {
+      notaryModel.findById = async (id) => ({ id: Number(id), status: 'ACTIVE' });
+
+      const invalidPayload = {
+        working_days_per_week: 5,
+        start_time: '08:00',
+        end_time: '17:00',
+        work_holiday: false,
+        holiday_preferences: {
+          federal: {
+            mode: 'TEST_MODE',
+            selected_holiday_ids: [1],
+          },
+          state: {
+            mode: 'NONE',
+            state_id: 5,
+            selected_holiday_ids: [],
+          },
+        },
+      };
+
+      const response = await request(app)
+        .put('/api/v1/notaries/1/availability')
+        .send(invalidPayload)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      assert.equal([400, 422].includes(response.statusCode), true);
+      assert.equal(response.body.success, false);
+      assert.equal(response.body.status, 'error');
+      assert.ok(
+        response.body.message.toLowerCase().includes('federal mode') ||
+          response.body.message.toLowerCase().includes('all, selected, or none'),
+      );
+    },
+  );
+});
 // ============================================================================
 // END OF DEV-TRONGTUAN TEST CASES
 // ============================================================================
