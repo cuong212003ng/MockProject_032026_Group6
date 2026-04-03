@@ -37,11 +37,7 @@ const validateDateRange = (fromField, toField) => (req, res, next) => {
 
 const requireUploadedFile = (req, res, next) => {
   if (!req.file) {
-    return sendError(res, 'file is required', 400, [{ path: 'file', msg: 'file is required' }]);
-
     return sendError(res, 'file is required', 422, [{ path: 'file', msg: 'file is required' }]);
-
-    return sendError(res, 'file is required', 400, [{ path: 'file', msg: 'file is required' }]);
   }
 
   next();
@@ -127,13 +123,11 @@ const validateDocumentListQuery = [
     .trim()
     .notEmpty()
     .withMessage('document_type must not be empty'),
-
   query('search').optional().isString().withMessage('search must be a string'),
   query('date_range')
     .optional()
     .isIn(['last_7_days', 'last_30_days', 'last_90_days', 'custom'])
     .withMessage('Invalid date_range'),
-
   query('status').optional().isIn(DOCUMENT_STATUSES).withMessage('Invalid document status'),
   query('from_date').optional().isISO8601().withMessage('from_date must be a valid ISO date'),
   query('to_date').optional().isISO8601().withMessage('to_date must be a valid ISO date'),
@@ -145,7 +139,6 @@ const validateDocumentUpload = [
   param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
   body('document_type').optional().trim().notEmpty().withMessage('document_type must not be empty'),
   body('doc_category').optional().trim().notEmpty().withMessage('doc_category must not be empty'),
-
   body('file_url').optional().isString().withMessage('file_url must be a string'),
   body('file_name').optional().isString().withMessage('file_name must be a string'),
   handleValidation,
@@ -203,12 +196,10 @@ const validateAuditLogQuery = [
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('limit must be between 1 and 100'),
-
   query('time_range')
     .optional()
     .isIn(['last_day', 'last_7_days', 'last_30_days', 'custom'])
     .withMessage('Invalid time_range'),
-
   query('from_date').optional().isISO8601().withMessage('from_date must be a valid ISO date'),
   query('to_date').optional().isISO8601().withMessage('to_date must be a valid ISO date'),
   handleValidation,
@@ -435,70 +426,6 @@ const validateCommissionUpdatePayload = [
   handleValidation,
 ];
 
-const validateAvailabilityPayload = [
-  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
-  body('working_days_per_week')
-    .optional()
-    .isInt({ min: 1, max: 7 })
-    .withMessage('working_days_per_week must be between 1 and 7'),
-  body('start_time')
-    .optional()
-    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
-    .withMessage('start_time must be in HH:MM format'),
-  body('end_time')
-    .optional()
-    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
-    .withMessage('end_time must be in HH:MM format'),
-  body('fixed_days_off').optional().isString().withMessage('fixed_days_off must be a string'),
-  body('blackout_dates').optional().isArray().withMessage('blackout_dates must be an array'),
-  body('blackout_dates.*')
-    .optional()
-    .isISO8601()
-    .withMessage('blackout_dates must contain valid ISO dates'),
-  body('work_holiday').optional().isBoolean().withMessage('work_holiday must be a boolean'),
-  body('holiday_preferences')
-    .optional()
-    .isObject()
-    .withMessage('holiday_preferences must be an object'),
-  body('holiday_preferences.federal')
-    .optional()
-    .isObject()
-    .withMessage('holiday_preferences.federal must be an object'),
-  body('holiday_preferences.federal.mode')
-    .optional()
-    .isIn(['ALL', 'SELECTED', 'NONE'])
-    .withMessage('federal mode must be ALL, SELECTED, or NONE'),
-  body('holiday_preferences.federal.selected_holiday_ids')
-    .optional()
-    .isArray()
-    .withMessage('federal selected_holiday_ids must be an array'),
-  body('holiday_preferences.federal.selected_holiday_ids.*')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('federal selected_holiday_ids must contain positive integers'),
-  body('holiday_preferences.state')
-    .optional()
-    .isObject()
-    .withMessage('holiday_preferences.state must be an object'),
-  body('holiday_preferences.state.mode')
-    .optional()
-    .isIn(['ALL', 'SELECTED', 'NONE'])
-    .withMessage('state mode must be ALL, SELECTED, or NONE'),
-  body('holiday_preferences.state.state_id')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('state_id must be a positive integer'),
-  body('holiday_preferences.state.selected_holiday_ids')
-    .optional()
-    .isArray()
-    .withMessage('state selected_holiday_ids must be an array'),
-  body('holiday_preferences.state.selected_holiday_ids.*')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('state selected_holiday_ids must contain positive integers'),
-  handleValidation,
-];
-
 module.exports = {
   handleValidation,
   normalizeDocumentUploadPayload,
@@ -523,5 +450,4 @@ module.exports = {
   validateCommissionListQuery,
   validateCommissionPayload,
   validateCommissionUpdatePayload,
-  validateAvailabilityPayload,
 };
