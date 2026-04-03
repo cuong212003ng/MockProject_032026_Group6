@@ -931,9 +931,6 @@ const listDocumentsPage = async (notaryId, filters = {}, { offset = 0, limit = 1
   const { whereClause, params } = buildDocumentFilters(notaryId, filters);
   const result = await query(
     `SELECT
-<<<<<<< HEAD
-       ${DOCUMENT_SELECT_FIELDS}
-=======
        id AS doc_id,
        notary_id,
        doc_category AS document_type,
@@ -943,7 +940,6 @@ const listDocumentsPage = async (notaryId, filters = {}, { offset = 0, limit = 1
        version,
        is_current_version,
        file_url
->>>>>>> 774e8f4 (fix: bug before merge)
      FROM Notary_documents
      ${whereClause}
      ORDER BY upload_date DESC, id DESC
@@ -962,9 +958,6 @@ const listDocuments = async (notaryId, { document_type, status } = {}) => {
 const findDocumentById = async (docId, notaryId = null) => {
   let documentQuery = `
     SELECT
-<<<<<<< HEAD
-      ${DOCUMENT_SELECT_FIELDS}
-=======
       id AS doc_id,
       notary_id,
       doc_category AS document_type,
@@ -974,7 +967,6 @@ const findDocumentById = async (docId, notaryId = null) => {
       version,
       is_current_version,
       file_url
->>>>>>> 774e8f4 (fix: bug before merge)
     FROM Notary_documents
     WHERE id = @docId
   `;
@@ -1208,9 +1200,6 @@ const updateDocumentVerificationStatus = async (docId, notaryId, status, queryEx
 
   const result = await runQuery(
     `SELECT
-<<<<<<< HEAD
-       ${DOCUMENT_SELECT_FIELDS}
-=======
        id AS doc_id,
        notary_id,
        doc_category AS document_type,
@@ -1220,7 +1209,6 @@ const updateDocumentVerificationStatus = async (docId, notaryId, status, queryEx
        version,
        is_current_version,
        file_url
->>>>>>> 774e8f4 (fix: bug before merge)
      FROM Notary_documents
      WHERE id = @docId AND notary_id = @notaryId`,
     { docId, notaryId },
