@@ -272,6 +272,33 @@ const listDocuments = async (req, res) => {
   }
 };
 
+const getDocumentDetail = async (req, res) => {
+  try {
+    const result = await documentService.getDocumentDetail({
+      notaryId: req.params.id,
+      docId: req.params.docId,
+    });
+
+    return sendSuccess(res, result, 'Document retrieved successfully');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to retrieve document', 'getDocumentDetail');
+  }
+};
+
+const createDocument = async (req, res) => {
+  try {
+    const result = await documentService.createDocument({
+      notaryId: req.params.id,
+      body: req.body,
+      actorId: req.auditContext?.actorId || req.user?.id || null,
+    });
+
+    return sendSuccess(res, result, 'Document created successfully', 201);
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to create document', 'createDocument');
+  }
+};
+
 // ─── 18. POST /api/v1/notaries/:id/documents ─────────────────────────────────
 const uploadDocument = async (req, res) => {
   try {
@@ -285,6 +312,21 @@ const uploadDocument = async (req, res) => {
     return sendSuccess(res, result, 'Document uploaded successfully', 201);
   } catch (err) {
     return handleServiceError(res, err, 'Failed to upload document', 'uploadDocument');
+  }
+};
+
+const updateDocument = async (req, res) => {
+  try {
+    const result = await documentService.updateDocument({
+      notaryId: req.params.id,
+      docId: req.params.docId,
+      payload: req.body,
+      actorId: req.auditContext?.actorId || req.user?.id || null,
+    });
+
+    return sendSuccess(res, result, 'Document updated successfully');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to update document', 'updateDocument');
   }
 };
 
@@ -304,6 +346,20 @@ const verifyDocument = async (req, res) => {
   }
 };
 
+const deleteDocument = async (req, res) => {
+  try {
+    const result = await documentService.deleteDocument({
+      notaryId: req.params.id,
+      docId: req.params.docId,
+      actorId: req.auditContext?.actorId || req.user?.id || null,
+    });
+
+    return sendSuccess(res, result, 'Document deleted successfully');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to delete document', 'deleteDocument');
+  }
+};
+
 // ─── 20. GET /api/v1/notaries/:id/audit-logs ─────────────────────────────────
 const getAuditLogs = async (req, res) => {
   try {
@@ -318,6 +374,37 @@ const getAuditLogs = async (req, res) => {
   }
 };
 
+const getAuditTrail = async (req, res) => {
+  try {
+    const data = await auditService.getAuditTrail({
+      notaryId: req.params.id,
+      filters: req.query,
+    });
+
+    return sendSuccess(res, data, 'Audit trail retrieved successfully');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to retrieve audit trail', 'getAuditTrail');
+  }
+};
+
+const getAuditTrailDetail = async (req, res) => {
+  try {
+    const data = await auditService.getAuditTrailDetail({
+      notaryId: req.params.id,
+      auditId: req.params.auditId,
+    });
+
+    return sendSuccess(res, data, 'Audit trail detail retrieved successfully');
+  } catch (err) {
+    return handleServiceError(
+      res,
+      err,
+      'Failed to retrieve audit trail detail',
+      'getAuditTrailDetail',
+    );
+  }
+};
+
 // ─── 21. GET /api/v1/notaries/:id/incidents ──────────────────────────────────
 const getIncidents = async (req, res) => {
   try {
@@ -329,6 +416,24 @@ const getIncidents = async (req, res) => {
     return sendSuccess(res, data, 'Incidents retrieved successfully');
   } catch (err) {
     return handleServiceError(res, err, 'Failed to retrieve incidents', 'getIncidents');
+  }
+};
+
+const getRecentActivities = async (req, res) => {
+  try {
+    const data = await auditService.getRecentActivities({
+      notaryId: req.params.id,
+      filters: req.query,
+    });
+
+    return sendSuccess(res, data, 'Recent activities retrieved successfully');
+  } catch (err) {
+    return handleServiceError(
+      res,
+      err,
+      'Failed to retrieve recent activities',
+      'getRecentActivities',
+    );
   }
 };
 
@@ -396,10 +501,17 @@ module.exports = {
   getAvailability,
   setAvailability,
   listDocuments,
+  getDocumentDetail,
+  createDocument,
   uploadDocument,
+  updateDocument,
   verifyDocument,
+  deleteDocument,
   getAuditLogs,
+  getAuditTrail,
+  getAuditTrailDetail,
   getIncidents,
+  getRecentActivities,
   createIncident,
   // ─── SC003: Personal Info (dev-trongtuan) ───
   updatePersonalInfo,
