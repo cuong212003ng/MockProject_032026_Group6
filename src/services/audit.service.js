@@ -1,7 +1,10 @@
 const notaryModel = require('../models/notary.model');
 const auditLogService = require('./audit-log.service');
 const notaryProfileService = require('./notary-profile.service');
+<<<<<<< HEAD
 const { AppError } = require('../utils/app-error');
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
 const { normalizePagination, buildPagination } = require('../utils/pagination.helper');
 
 const getAuditLogs = async ({ notaryId, filters = {} }) => {
@@ -21,6 +24,7 @@ const getAuditLogs = async ({ notaryId, filters = {} }) => {
   };
 };
 
+<<<<<<< HEAD
 const getAuditTrail = async ({ notaryId, filters = {} }) => getAuditLogs({ notaryId, filters });
 
 const getAuditTrailDetail = async ({ notaryId, auditId }) => {
@@ -34,6 +38,8 @@ const getAuditTrailDetail = async ({ notaryId, auditId }) => {
   return auditLogService.hydrateAuditLog(auditLog);
 };
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
 const getIncidents = async ({ notaryId, filters = {} }) => {
   await notaryProfileService.getNotaryOrThrow(notaryId);
 
@@ -51,6 +57,7 @@ const getIncidents = async ({ notaryId, filters = {} }) => {
   };
 };
 
+<<<<<<< HEAD
 const getRecentIncidents = async ({ notaryId, filters = {} }) =>
   getIncidents({
     notaryId,
@@ -115,6 +122,8 @@ const getRecentActivities = async ({ notaryId, filters = {} }) => {
   return items.map((item) => mapAuditLogToActivity(auditLogService.hydrateAuditLog(item)));
 };
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
 const createIncident = async ({ notaryId, payload, actorId }) => {
   await notaryProfileService.getNotaryOrThrow(notaryId);
 
@@ -134,10 +143,14 @@ const createIncident = async ({ notaryId, payload, actorId }) => {
 
 module.exports = {
   getAuditLogs,
+<<<<<<< HEAD
   getAuditTrail,
   getAuditTrailDetail,
   getIncidents,
   getRecentIncidents,
   getRecentActivities,
+=======
+  getIncidents,
+>>>>>>> 774e8f4 (fix: bug before merge)
   createIncident,
 };

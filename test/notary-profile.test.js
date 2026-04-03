@@ -93,6 +93,7 @@ const resetStubs = () => {
     },
   });
 
+<<<<<<< HEAD
   documentService.getDocumentDetail = async ({ notaryId, docId }) => ({
     doc_id: Number(docId),
     notary_id: Number(notaryId),
@@ -113,10 +114,13 @@ const resetStubs = () => {
     file_url: body.file_url || '/uploads/notary-documents/1/commission.pdf',
   });
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
   documentService.uploadDocument = async ({ notaryId, body, file }) => ({
     doc_id: 202,
     notary_id: Number(notaryId),
     document_type: body.document_type,
+<<<<<<< HEAD
     file_name: file?.originalname || body.file_name || 'commission.pdf',
     verified_status: body.status || 'PENDING',
     version: 3,
@@ -131,6 +135,12 @@ const resetStubs = () => {
     verified_status: payload.status || 'APPROVED',
     version: payload.version || 3,
     file_url: payload.file_url || '/uploads/notary-documents/1/commission-v2.pdf',
+=======
+    file_name: file.originalname,
+    verified_status: 'PENDING',
+    version: 3,
+    file_url: file.storageUrl,
+>>>>>>> 774e8f4 (fix: bug before merge)
   });
 
   documentService.verifyDocument = async ({ notaryId, docId, status }) => ({
@@ -139,12 +149,15 @@ const resetStubs = () => {
     verified_status: status,
   });
 
+<<<<<<< HEAD
   documentService.deleteDocument = async ({ docId }) => ({
     id: Number(docId),
     status: 'INACTIVE',
     deleted_at: '2026-04-03T03:00:00.000Z',
   });
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
   auditService.getAuditLogs = async ({ notaryId }) => ({
     items: [
       {
@@ -164,6 +177,7 @@ const resetStubs = () => {
     },
   });
 
+<<<<<<< HEAD
   auditService.getAuditTrail = async ({ notaryId }) => ({
     items: [
       {
@@ -190,6 +204,8 @@ const resetStubs = () => {
     changed_fields: [{ field: 'status', before: 'PENDING', after: 'APPROVED' }],
   });
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
   auditService.getIncidents = async ({ notaryId }) => ({
     items: [
       {
@@ -207,6 +223,7 @@ const resetStubs = () => {
     },
   });
 
+<<<<<<< HEAD
   auditService.getRecentActivities = async () => [
     {
       action_type: 'Document Uploaded',
@@ -217,6 +234,8 @@ const resetStubs = () => {
     },
   ];
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
   auditService.createIncident = async ({ notaryId, payload }) => ({
     inc_id: 402,
     notary_id: Number(notaryId),
@@ -228,6 +247,7 @@ const resetStubs = () => {
 test.after(() => {
   notaryModel.findById = originalState.findById;
   documentService.listDocuments = originalState.listDocuments;
+<<<<<<< HEAD
   documentService.getDocumentDetail = originalState.getDocumentDetail;
   documentService.createDocument = originalState.createDocument;
   documentService.uploadDocument = originalState.uploadDocument;
@@ -239,6 +259,12 @@ test.after(() => {
   auditService.getAuditTrailDetail = originalState.getAuditTrailDetail;
   auditService.getIncidents = originalState.getIncidents;
   auditService.getRecentActivities = originalState.getRecentActivities;
+=======
+  documentService.uploadDocument = originalState.uploadDocument;
+  documentService.verifyDocument = originalState.verifyDocument;
+  auditService.getAuditLogs = originalState.getAuditLogs;
+  auditService.getIncidents = originalState.getIncidents;
+>>>>>>> 774e8f4 (fix: bug before merge)
   auditService.createIncident = originalState.createIncident;
 
   fs.rmSync(process.env.UPLOAD_DIR, { recursive: true, force: true });
@@ -300,6 +326,7 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
     assert.equal(response.body.data.pagination.total_items, 1);
   });
 
+<<<<<<< HEAD
   await t.test('user can read own document detail', async () => {
     const response = await request(app)
       .get('/api/v1/notaries/1/documents/101')
@@ -310,6 +337,8 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
     assert.equal(response.body.data.doc_id, 101);
   });
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
   await t.test('user is blocked from another profile documents', async () => {
     const response = await request(app)
       .get('/api/v1/notaries/1/documents')
@@ -329,10 +358,17 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     assert.equal(response.statusCode, 400);
 =======
     assert.equal(response.statusCode, 422);
 >>>>>>> 1b0a648 (Add SC007 and SC008 document/audit APIs)
+=======
+    assert.equal(response.statusCode, 422);
+=======
+    assert.equal(response.statusCode, 400);
+>>>>>>> 774e8f4 (fix: bug before merge)
+>>>>>>> 417d098 (fix: conflict)
     assert.equal(response.body.success, false);
     assert.match(response.body.message, /file is required/i);
 =======
@@ -445,6 +481,7 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
     assert.equal(response.body.status, 'error');
   });
 
+<<<<<<< HEAD
   await t.test('admin can delete a document', async () => {
     const response = await request(app)
       .delete('/api/v1/notaries/1/documents/202')
@@ -455,6 +492,8 @@ test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior'
     assert.equal(response.body.data.status, 'INACTIVE');
   });
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
   await t.test('admin can read audit logs with pagination wrapper', async () => {
     const response = await request(app)
       .get('/api/v1/notaries/1/audit-logs?page=1&limit=10')

@@ -23,6 +23,7 @@ const listDocuments = async ({ notaryId, filters = {} }) => {
   };
 };
 
+<<<<<<< HEAD
 const getDocumentDetail = async ({ notaryId, docId }) => {
   await notaryProfileService.getNotaryOrThrow(notaryId);
 
@@ -95,14 +96,19 @@ const createDocument = async ({ notaryId, body = {}, actorId }) => {
   });
 };
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
 const uploadDocument = async ({ notaryId, body, file, actorId }) => {
   await notaryProfileService.getNotaryOrThrow(notaryId);
 
   if (!file) {
+<<<<<<< HEAD
     if (body?.file_url) {
       return createDocument({ notaryId, body, actorId });
     }
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
     throw new AppError('file is required', 422, [{ path: 'file', msg: 'file is required' }]);
   }
 
@@ -146,6 +152,7 @@ const uploadDocument = async ({ notaryId, body, file, actorId }) => {
   }
 };
 
+<<<<<<< HEAD
 const updateDocument = async ({ notaryId, docId, payload = {}, actorId }) => {
   await notaryProfileService.getNotaryOrThrow(notaryId);
 
@@ -169,6 +176,8 @@ const updateDocument = async ({ notaryId, docId, payload = {}, actorId }) => {
   return updatedDocument;
 };
 
+=======
+>>>>>>> 774e8f4 (fix: bug before merge)
 const verifyDocument = async ({ notaryId, docId, status, actorId }) => {
   await notaryProfileService.getNotaryOrThrow(notaryId);
 
@@ -195,6 +204,7 @@ const verifyDocument = async ({ notaryId, docId, status, actorId }) => {
   return updatedDocument;
 };
 
+<<<<<<< HEAD
 const deleteDocument = async ({ notaryId, docId, actorId }) => {
   await notaryProfileService.getNotaryOrThrow(notaryId);
 
@@ -226,4 +236,10 @@ module.exports = {
   updateDocument,
   verifyDocument,
   deleteDocument,
+=======
+module.exports = {
+  listDocuments,
+  uploadDocument,
+  verifyDocument,
+>>>>>>> 774e8f4 (fix: bug before merge)
 };
