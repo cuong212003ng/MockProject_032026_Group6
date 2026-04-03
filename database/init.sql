@@ -945,12 +945,18 @@ END
 >>>>>>> dabfe06 (feat/init databse and code base (#52))
 GO
 
-ALTER TABLE Notary_insurances
-ADD effective_date DATE NULL;
+-- Check if 'effective_date' column exists in 'Notary_insurances' table, if not, add it
+IF COL_LENGTH('Notary_insurances', 'effective_date') IS NULL
+BEGIN
+    ALTER TABLE Notary_insurances
+    ADD effective_date DATE NULL;
+    
+    PRINT 'Da them cot effective_date vao bang Notary_insurances';
+END
+GO
 
 PRINT 'notarial_db khởi tạo thành công!';
 GO
-<<<<<<< HEAD
 
 ---- Updated according to charge requirements ----------------------------------------------
 
@@ -996,6 +1002,4 @@ CREATE TABLE notary_selected_holidays (
     PRIMARY KEY (notary_id, holiday_id)
 );
 END
-GO
-=======
->>>>>>> 30a0d89 (feat(notary-profile): implement SC_007 SC_008 and security authorization)
+

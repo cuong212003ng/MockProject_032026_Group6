@@ -131,11 +131,14 @@ Main processing flow of the module:
 ### SC_005_Bond&Insurance
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > 5a52a59 (docs(readme): update notary profile module structure)
 
+=======
+>>>>>>> c33394b (fix: update to charge requirement s006)
 - `GET /api/v1/notaries/:id/compliance`
 - `PUT /api/v1/notaries/:id/compliance`
 
@@ -209,7 +212,7 @@ npm install
 # 2. Create .env from .env.example
 # Fill in database and JWT configuration
 
-# 3. Run development server
+#For Tester / Running Production environment:
 npm start
 
 # 3. Available Scripts
@@ -217,14 +220,21 @@ npm run dev     # Run development server (nodemon)
 npm start       # Run production server (node)
 npm run debug   # Run development server with V8 inspector
 npm test        # Run unit tests
+<<<<<<< HEAD
 
 ## Verification
 
 - `npm run lint`
 - `npm test`
 ```
+=======
+>>>>>>> c33394b (fix: update to charge requirement s006)
 
 ## Verification
 
 - `npm run lint`
 - `npm test`
+<<<<<<< HEAD
+=======
+```
+>>>>>>> c33394b (fix: update to charge requirement s006)

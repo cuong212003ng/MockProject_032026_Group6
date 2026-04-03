@@ -764,16 +764,23 @@ router.get(
  *               fixed_days_off:
  *                 type: string
 <<<<<<< HEAD
+<<<<<<< HEAD
  *                 example: 'sat,sun'
 =======
  *                 example: 'Saturday,Sunday'
 >>>>>>> 6c1d201 (Feature/notary profile sc005 sc006 )
+=======
+ *                 example: 'sat,sun'
+>>>>>>> c33394b (fix: update to charge requirement s006)
  *               blackout_dates:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: date
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c33394b (fix: update to charge requirement s006)
  *               work_holiday:
  *                 type: boolean
  *                 description: Whether the notary works on holidays
@@ -802,8 +809,11 @@ router.get(
  *                         type: array
  *                         items:
  *                           type: integer
+<<<<<<< HEAD
 =======
 >>>>>>> 6c1d201 (Feature/notary profile sc005 sc006 )
+=======
+>>>>>>> c33394b (fix: update to charge requirement s006)
  *     responses:
  *       200:
  *         description: Availability set
