@@ -123,6 +123,11 @@ const validateDocumentListQuery = [
     .trim()
     .notEmpty()
     .withMessage('document_type must not be empty'),
+  query('search').optional().isString().withMessage('search must be a string'),
+  query('date_range')
+    .optional()
+    .isIn(['last_7_days', 'last_30_days', 'last_90_days', 'custom'])
+    .withMessage('Invalid date_range'),
   query('status').optional().isIn(DOCUMENT_STATUSES).withMessage('Invalid document status'),
   query('from_date').optional().isISO8601().withMessage('from_date must be a valid ISO date'),
   query('to_date').optional().isISO8601().withMessage('to_date must be a valid ISO date'),
@@ -134,9 +139,17 @@ const validateDocumentUpload = [
   param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
   body('document_type').optional().trim().notEmpty().withMessage('document_type must not be empty'),
   body('doc_category').optional().trim().notEmpty().withMessage('doc_category must not be empty'),
+  body('file_url').optional().isString().withMessage('file_url must be a string'),
+  body('file_name').optional().isString().withMessage('file_name must be a string'),
   handleValidation,
   requireDocumentType,
-  requireUploadedFile,
+  (req, res, next) => {
+    if (!req.file && !req.body.file_url) {
+      return requireUploadedFile(req, res, next);
+    }
+
+    next();
+  },
 ];
 
 const validateDocumentVerification = [
@@ -148,6 +161,30 @@ const validateDocumentVerification = [
   handleValidation,
 ];
 
+const validateDocumentUpdate = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  param('docId').isInt({ min: 1 }).withMessage('docId must be a positive integer'),
+  body('document_type').optional().trim().notEmpty().withMessage('document_type must not be empty'),
+  body('doc_category').optional().trim().notEmpty().withMessage('doc_category must not be empty'),
+  body('file_name').optional().isString().withMessage('file_name must be a string'),
+  body('file_url').optional().isString().withMessage('file_url must be a string'),
+  body('upload_date').optional().isISO8601().withMessage('upload_date must be a valid ISO date'),
+  body('status')
+    .optional()
+    .isIn([...DOCUMENT_STATUSES, 'INACTIVE'])
+    .withMessage('status must be PENDING, APPROVED, REJECTED, or INACTIVE'),
+  body('verified_status')
+    .optional()
+    .isIn([...DOCUMENT_STATUSES, 'INACTIVE'])
+    .withMessage('verified_status must be PENDING, APPROVED, REJECTED, or INACTIVE'),
+  body('version').optional().isInt({ min: 1 }).withMessage('version must be a positive integer'),
+  body('is_current_version')
+    .optional()
+    .isBoolean()
+    .withMessage('is_current_version must be a boolean'),
+  handleValidation,
+];
+
 const validateAuditLogQuery = [
   param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
   query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
@@ -155,10 +192,29 @@ const validateAuditLogQuery = [
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('limit must be between 1 and 100'),
+  query('time_range')
+    .optional()
+    .isIn(['last_day', 'last_7_days', 'last_30_days', 'custom'])
+    .withMessage('Invalid time_range'),
   query('from_date').optional().isISO8601().withMessage('from_date must be a valid ISO date'),
   query('to_date').optional().isISO8601().withMessage('to_date must be a valid ISO date'),
   handleValidation,
   validateDateRange('from_date', 'to_date'),
+];
+
+const validateAuditTrailDetailParams = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  param('auditId').isInt({ min: 1 }).withMessage('auditId must be a positive integer'),
+  handleValidation,
+];
+
+const validateRecentActivityQuery = [
+  param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage('limit must be between 1 and 100'),
+  handleValidation,
 ];
 
 const validateIncidentListQuery = [
@@ -377,8 +433,11 @@ module.exports = {
   validateDocumentIdParams,
   validateDocumentListQuery,
   validateDocumentUpload,
+  validateDocumentUpdate,
   validateDocumentVerification,
   validateAuditLogQuery,
+  validateAuditTrailDetailParams,
+  validateRecentActivityQuery,
   validateIncidentListQuery,
   validateIncidentCreate,
   validateBioUpdate,

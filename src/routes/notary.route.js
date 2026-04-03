@@ -11,16 +11,23 @@ const { uploadDocumentFile } = require('../middlewares/upload.middleware');
 const {
   normalizeDocumentUploadPayload,
   validateNotaryIdParam,
+  validateDocumentIdParams,
   validateDocumentListQuery,
   validateDocumentUpload,
+  validateDocumentUpdate,
   validateDocumentVerification,
   validateAuditLogQuery,
+  validateAuditTrailDetailParams,
+  validateRecentActivityQuery,
   validateIncidentListQuery,
   validateIncidentCreate,
   validateBioUpdate,
   validateToggleStatus,
   validatePersonalInfoUpdate,
   validateNotaryAndCommissionIdParams,
+  validateCommissionListQuery,
+  validateCommissionPayload,
+  validateCommissionUpdatePayload,
 } = require('../middlewares/validate.middleware');
 
 // router.use(authenticate); // TODO: bật lại khi deploy
@@ -788,6 +795,14 @@ router.get(
   notaryController.listDocuments,
 );
 
+router.get(
+  '/:id/documents/:docId',
+  authorize('ADMIN', 'USER'),
+  authorizeNotaryOwnerOrAdmin,
+  validateDocumentIdParams,
+  notaryController.getDocumentDetail,
+);
+
 /**
  * @swagger
  * /api/v1/notaries/{id}/documents:
@@ -834,6 +849,24 @@ router.post(
   notaryController.uploadDocument,
 );
 
+router.post(
+  '/:id/documents/upload',
+  authorize('ADMIN', 'USER'),
+  authorizeNotaryOwnerOrAdmin,
+  uploadDocumentFile,
+  normalizeDocumentUploadPayload,
+  validateDocumentUpload,
+  notaryController.uploadDocument,
+);
+
+router.put(
+  '/:id/documents/:docId',
+  authorize('ADMIN', 'USER'),
+  authorizeNotaryOwnerOrAdmin,
+  validateDocumentUpdate,
+  notaryController.updateDocument,
+);
+
 /**
  * @swagger
  * /api/v1/notaries/{id}/documents/{docId}/verify:
@@ -874,6 +907,14 @@ router.patch(
   authorize('ADMIN'),
   validateDocumentVerification,
   notaryController.verifyDocument,
+);
+
+router.delete(
+  '/:id/documents/:docId',
+  authorize('ADMIN', 'USER'),
+  authorizeNotaryOwnerOrAdmin,
+  validateDocumentIdParams,
+  notaryController.deleteDocument,
 );
 
 // ── Audit & Incidents ────────────────────────────────────────────────────────
@@ -921,6 +962,27 @@ router.get(
   authorize('ADMIN'),
   validateAuditLogQuery,
   notaryController.getAuditLogs,
+);
+
+router.get(
+  '/:id/audit-trails/:auditId',
+  authorize('ADMIN'),
+  validateAuditTrailDetailParams,
+  notaryController.getAuditTrailDetail,
+);
+
+router.get(
+  '/:id/audit-trails',
+  authorize('ADMIN'),
+  validateAuditLogQuery,
+  notaryController.getAuditTrail,
+);
+
+router.get(
+  '/:id/activities',
+  authorize('ADMIN'),
+  validateRecentActivityQuery,
+  notaryController.getRecentActivities,
 );
 
 /**
