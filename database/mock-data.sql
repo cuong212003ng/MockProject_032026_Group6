@@ -538,32 +538,6 @@ SET IDENTITY_INSERT notary_availabilities OFF;
 END
 GO
 
--- Seed: notary_selected_holidays
-IF NOT EXISTS (SELECT 1 FROM notary_selected_holidays)
-BEGIN
-INSERT INTO notary_selected_holidays (notary_id, holiday_id)
-VALUES
-    (1, 1),
-    (1, 10),
-    (4, 5),
-    (4, 10),
-    (5, 4),
-    (5, 9),
-    (9, 5),
-    (9, 8),
-    (10, 5),
-    (10, 10),
-    (12, 1),
-    (12, 9),
-    (17, 6),
-    (17, 10),
-    (19, 11),
-    (19, 14),
-    (20, 4),
-    (20, 10);
-END
-GO
-
 -- Seed: notary_service_areas
 IF NOT EXISTS (SELECT 1 FROM notary_service_areas)
 BEGIN
@@ -795,6 +769,32 @@ INSERT INTO Holidays (id, name, type, state_id, date_rule) VALUES
     (14, N'Lyndon B. Johnson''s Birthday', 'STATE',   43,   '08-27'),
     (15, N'Texas State Fair',              'STATE',   43,   '1st-Friday-10');
 SET IDENTITY_INSERT Holidays OFF;
+END
+GO
+
+-- Seed: notary_selected_holidays
+IF NOT EXISTS (SELECT 1 FROM notary_selected_holidays)
+BEGIN
+INSERT INTO notary_selected_holidays (notary_id, holiday_id)
+VALUES
+    (1, 1),
+    (1, 10),
+    (4, 5),
+    (4, 10),
+    (5, 4),
+    (5, 9),
+    (9, 5),
+    (9, 8),
+    (10, 5),
+    (10, 10),
+    (12, 1),
+    (12, 9),
+    (17, 6),
+    (17, 10),
+    (19, 11),
+    (19, 14),
+    (20, 4),
+    (20, 10);
 END
 GO
 
