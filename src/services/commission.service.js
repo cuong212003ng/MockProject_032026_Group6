@@ -10,6 +10,40 @@ const getCommissions = async (notaryId, filters) => {
   return await notaryModel.getCommissions(notaryId, filters);
 };
 
+const computeLegalRiskStatus = (expirationDate) => {
+  if (!expirationDate) return 'VALID';
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const expiry = new Date(expirationDate);
+  expiry.setHours(0, 0, 0, 0);
+
+  return expiry < today ? 'EXPIRED' : 'VALID';
+};
+
+const getLegalInfo = async (notaryId, filters) => {
+  await notaryProfileService.getNotaryOrThrow(notaryId);
+
+  const commissions = await notaryModel.getCommissions(notaryId, filters);
+  const compliance = await notaryModel.getCompliance(notaryId);
+
+  const bonds = (compliance.bonds || []).map((bond) => ({
+    ...bond,
+    risk_status: computeLegalRiskStatus(bond.expiration_date),
+  }));
+
+  const insurances = (compliance.insurances || []).map((insurance) => ({
+    ...insurance,
+    risk_status: computeLegalRiskStatus(insurance.expiration_date),
+  }));
+
+  return {
+    commissions,
+    bonds,
+    insurances,
+  };
+};
+
 const createCommission = async (notaryId, payload) => {
   await notaryProfileService.getNotaryOrThrow(notaryId);
 
@@ -89,6 +123,7 @@ const deleteCommission = async (notaryId, commissionId) => {
 
 module.exports = {
   getCommissions,
+  getLegalInfo,
   createCommission,
   updateCommission,
   deleteCommission,

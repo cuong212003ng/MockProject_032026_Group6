@@ -52,12 +52,11 @@ const createNotary = async (req, res) => {
 const getNotaryById = async (req, res) => {
   try {
     const { id } = req.params;
-    const notary = await notaryModel.findById(id);
-    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
-    return sendSuccess(res, notary, 'Notary retrieved successfully');
+    const profile = await notaryProfileService.getNotaryProfile(id);
+    return sendSuccess(res, profile, 'Notary retrieved successfully');
   } catch (err) {
     console.error('[getNotaryById]', err.message);
-    return sendError(res, 'Failed to retrieve notary', 500);
+    return handleServiceError(res, err, 'Failed to retrieve notary', 'getNotaryById');
   }
 };
 
@@ -94,7 +93,7 @@ const toggleStatus = async (req, res) => {
   try {
     const result = await notaryProfileService.toggleStatus({
       notaryId: req.params.id,
-      isActive: req.body.is_active,
+      status: req.body.status,
       actorId: req.auditContext?.actorId || req.user?.id || null,
     });
 
@@ -138,14 +137,22 @@ const getStatusHistory = async (req, res) => {
 const getCommissions = async (req, res) => {
   try {
     const { id } = req.params;
-    const notary = await notaryModel.findById(id);
-    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
-
-    const data = await notaryModel.getCommissions(id);
+    const data = await commissionService.getCommissions(id, req.query);
     return sendSuccess(res, data, 'Commissions retrieved successfully');
   } catch (err) {
     console.error('[getCommissions]', err.message);
-    return sendError(res, 'Failed to retrieve commissions', 500);
+    return handleServiceError(res, err, 'Failed to retrieve commissions', 'getCommissions');
+  }
+};
+
+const getLegalInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await commissionService.getLegalInfo(id, req.query);
+    return sendSuccess(res, data, 'Legal info retrieved successfully');
+  } catch (err) {
+    console.error('[getLegalInfo]', err.message);
+    return handleServiceError(res, err, 'Failed to retrieve legal info', 'getLegalInfo');
   }
 };
 
@@ -215,14 +222,10 @@ const updateCompliance = async (req, res) => {
 const getCapabilities = async (req, res) => {
   try {
     const { id } = req.params;
-    const notary = await notaryModel.findById(id);
-    if (!notary) return sendError(res, `Notary #${id} not found`, 404);
-
-    const data = await notaryModel.getCapabilities(id);
+    const data = await notaryProfileService.getCapabilities(id);
     return sendSuccess(res, data, 'Capabilities retrieved successfully');
   } catch (err) {
-    console.error('[getCapabilities]', err.message);
-    return sendError(res, 'Failed to retrieve capabilities', 500);
+    return handleServiceError(res, err, 'Failed to retrieve capabilities', 'getCapabilities');
   }
 };
 
@@ -241,7 +244,18 @@ const updateCapabilities = async (req, res) => {
   }
 };
 
-// ─── 15. GET /api/v1/notaries/:id/availability ───────────────────────────────
+// ─── 15. GET /api/v1/notaries/:id/performance ───────────────────────────────
+const getPerformance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await notaryProfileService.getPerformance(id);
+    return sendSuccess(res, result, 'Performance metrics retrieved successfully');
+  } catch (err) {
+    return handleServiceError(res, err, 'Failed to retrieve performance metrics', 'getPerformance');
+  }
+};
+
+// ─── 16. GET /api/v1/notaries/:id/availability ───────────────────────────────
 const getAvailability = async (req, res) => {
   try {
     const { id } = req.params;
@@ -506,12 +520,14 @@ module.exports = {
   getOverview,
   getStatusHistory,
   getCommissions,
+  getLegalInfo,
   createCommission,
   updateCommission,
   getCompliance,
   updateCompliance,
   getCapabilities,
   updateCapabilities,
+  getPerformance,
   getAvailability,
   setAvailability,
   listDocuments,

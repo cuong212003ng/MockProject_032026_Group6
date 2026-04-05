@@ -506,6 +506,33 @@ router.patch(
   notaryController.updateCommission,
 );
 
+// ── Legal Info ───────────────────────────────────────────────────────────────
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/legal-info:
+ *   get:
+ *     summary: Get notary legal info (commissions, bonds, insurances)
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Legal info with risk statuses
+ */
+router.get(
+  '/:id/legal-info',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getLegalInfo,
+);
+
 // ── Compliance (Bond & Insurance) ────────────────────────────────────────────
 
 /**
@@ -646,6 +673,31 @@ router.get(
   authorize('ADMIN'),
   validateNotaryIdParam,
   notaryController.getCapabilities,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/performance:
+ *   get:
+ *     summary: Get notary performance metrics
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Performance metrics
+ */
+router.get(
+  '/:id/performance',
+  authorize('ADMIN'),
+  validateNotaryIdParam,
+  notaryController.getPerformance,
 );
 
 /**
@@ -1126,6 +1178,13 @@ router.get(
 
 router.get(
   '/:id/activities',
+  authorize('ADMIN'),
+  validateRecentActivityQuery,
+  notaryController.getRecentActivities,
+);
+
+router.get(
+  '/:id/activity',
   authorize('ADMIN'),
   validateRecentActivityQuery,
   notaryController.getRecentActivities,
