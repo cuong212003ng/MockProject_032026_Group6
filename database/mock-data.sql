@@ -342,26 +342,26 @@ SET IDENTITY_INSERT notaries ON;
 INSERT INTO notaries (id,user_id,ssn,full_name,date_of_birth,photo_url,phone,email,
     employment_type,start_date,internal_notes,status,residential_address,work_holiday)
 VALUES
-    (1, 1001, '123-45-6789', N'James Smith', '1985-02-15', '/img/jsmith.jpg', '(555) 123-4567', 'j.smith@mail.com', 'FULL_TIME', '2021-01-06', N'Top performer 2022', 'ACTIVE', N'123 Maple St, Seattle, WA 98101', 0),
+    (1, 1001, '123-45-6789', N'James Smith', '1985-02-15', '/img/jsmith.jpg', '(555) 123-4567', 'j.smith@mail.com', 'FULL_TIME', '2021-01-06', N'Top performer 2022', 'ACTIVE', N'123 Maple St, Seattle, WA 98101', 1),
     (2, 1002, '234-56-7890', N'Emily Johnson', '1990-08-22', '/img/ejohnson.jpg', '(555) 234-5678', 'emily.j@mail.com', 'FULL_TIME', '2022-01-15', N'Consistently meets targets; strong client satisfaction scores', 'ACTIVE', N'456 Oak Ave, Austin, TX 73301', 0),
-    (3, 1003, '345-67-8901', N'Michael Williams', '1988-11-30', '/img/mwilliams.jpg', '(555) 345-6789', 'm.williams@mail.com', 'INDEPENDENT_CONTRACT', '2023-10-03', N'Background check renewed', 'ACTIVE', N'789 Pine Ln, Chicago, IL 60601', 0),
+    (3, 1003, '345-67-8901', N'Michael Williams', '1988-11-30', '/img/mwilliams.jpg', '(555) 345-6789', 'm.williams@mail.com', 'INDEPENDENT_CONTRACT', '2023-10-03', N'Background check renewed', 'ACTIVE', N'789 Pine Ln, Chicago, IL 60601', 1),
     (4, 1004, '456-78-9012', N'Jessica Brown', '1992-12-04', '/img/jbrown.jpg', '(555) 456-7890', 'jessica.b@mail.com', 'FULL_TIME', '2021-01-09', N'On maternity leave', 'INACTIVE', N'321 Cedar Blvd, Denver, CO 80202', 0),
-    (5, 1005, '567-89-0123', N'David Jones', '1986-07-07', '/img/djones.jpg', '(555) 567-8901', 'd.jones@mail.com', 'FULL_TIME', '2020-11-20', N'Reliable performer; 5+ years experience; positive client reviews', 'ACTIVE', N'654 Elm St, Boston, MA 02108', 0),
+    (5, 1005, '567-89-0123', N'David Jones', '1986-07-07', '/img/djones.jpg', '(555) 567-8901', 'd.jones@mail.com', 'FULL_TIME', '2020-11-20', N'Reliable performer; 5+ years experience; positive client reviews', 'ACTIVE', N'654 Elm St, Boston, MA 02108', 1),
     (6, 1006, '678-90-1234', N'Sarah Garcia', '1995-09-25', '/img/sgarcia.jpg', '(555) 678-9012', 'sarah.g@mail.com', 'INDEPENDENT_CONTRACT', '2024-05-01', N'Pending state license', 'INACTIVE', N'987 Birch Rd, Miami, FL 33101', 0),
     (7, 1007, '789-01-2345', N'Robert Miller', '1983-12-12', '/img/rmiller.jpg', '(555) 789-0123', 'r.miller@mail.com', 'FULL_TIME', '2019-05-15', N'Policy violation reported', 'BLOCKED', N'159 Walnut Ct, Phoenix, AZ 85001', 0),
-    (8, 1008, '890-12-3456', N'Ashley Davis', '1991-08-03', '/img/adavis.jpg', '(555) 890-1234', 'ashley.d@mail.com', 'FULL_TIME', '2022-10-08', N'New hire; smooth onboarding; excels in document review', 'ACTIVE', N'753 Cherry Way, Atlanta, GA 30301', 0),
-    (9, 1009, '901-23-4567', N'William Rodriguez', '1989-06-18', '/img/wrodriguez.jpg', '(555) 901-2345', 'w.rodriguez@mail.com', 'INDEPENDENT_CONTRACT', '2023-01-11', N'Bilingual (Spanish)', 'ACTIVE', N'852 Ash Pl, Dallas, TX 75201', 0),
-    (10, 1010, '012-34-5678', N'Amanda Martinez', '1994-10-20', '/img/amartinez.jpg', '(555) 012-3456', 'amanda.m@mail.com', 'FULL_TIME', '2021-02-28', N'Senior Notary', 'ACTIVE', N'951 Spruce Dr, San Diego, CA 92101', 0),
+    (8, 1008, '890-12-3456', N'Ashley Davis', '1991-08-03', '/img/adavis.jpg', '(555) 890-1234', 'ashley.d@mail.com', 'FULL_TIME', '2022-10-08', N'New hire; smooth onboarding; excels in document review', 'ACTIVE', N'753 Cherry Way, Atlanta, GA 30301', 1),
+    (9, 1009, '901-23-4567', N'William Rodriguez', '1989-06-18', '/img/wrodriguez.jpg', '(555) 901-2345', 'w.rodriguez@mail.com', 'INDEPENDENT_CONTRACT', '2023-01-11', N'Bilingual (Spanish)', 'ACTIVE', N'852 Ash Pl, Dallas, TX 75201', 1),
+    (10, 1010, '012-34-5678', N'Amanda Martinez', '1994-10-20', '/img/amartinez.jpg', '(555) 012-3456', 'amanda.m@mail.com', 'FULL_TIME', '2021-02-28', N'Senior Notary', 'ACTIVE', N'951 Spruce Dr, San Diego, CA 92101', 1),
     (11, 1011, '111-22-3333', N'Joseph Hernandez', '1987-05-01', '/img/jhernandez.jpg', '(555) 111-2233', 'j.hernandez@mail.com', 'FULL_TIME', '2020-07-15', N'Experienced in loan signing and real estate closings', 'ACTIVE', N'124 King St, Portland, OR 97204', 0),
-    (12, 1012, '222-33-4444', N'Melissa Lopez', '1993-05-14', '/img/mlopez.jpg', '(555) 222-3344', 'melissa.l@mail.com', 'INDEPENDENT_CONTRACT', '2024-10-02', N'Mobile notary specialist; flexible scheduling', 'ACTIVE', N'567 Queen Ave, Las Vegas, NV 89101', 0),
+    (12, 1012, '222-33-4444', N'Melissa Lopez', '1993-05-14', '/img/mlopez.jpg', '(555) 222-3344', 'melissa.l@mail.com', 'INDEPENDENT_CONTRACT', '2024-10-02', N'Mobile notary specialist; flexible scheduling', 'ACTIVE', N'567 Queen Ave, Las Vegas, NV 89101', 1),
     (13, 1013, '333-44-5555', N'Charles Gonzalez', '1984-09-08', '/img/cgonzalez.jpg', '(555) 333-4455', 'c.gonzalez@mail.com', 'FULL_TIME', '2018-04-20', N'Branch Manager', 'ACTIVE', N'890 Prince Rd, Orlando, FL 32801', 0),
     (14, 1014, '444-55-6666', N'Nicole Wilson', '1996-02-12', '/img/nwilson.jpg', '(555) 444-5566', 'nicole.w@mail.com', 'FULL_TIME', '2023-05-09', N'Joined via referral program; bilingual communication skills', 'ACTIVE', N'234 Main St, Columbus, OH 43215', 0),
     (15, 1015, '555-66-7777', N'Thomas Anderson', '1982-11-11', '/img/tanderson.jpg', '(555) 555-6677', 't.anderson@mail.com', 'INDEPENDENT_CONTRACT', '2021-12-12', N'Customer complaints', 'BLOCKED', N'345 Oak Ave, Charlotte, NC 28202', 0),
-    (16, 1016, '666-77-8888', N'Samantha Thomas', '1990-02-28', '/img/sthomas.jpg', '(555) 666-7788', 'samantha.t@mail.com', 'FULL_TIME', '2022-05-18', N'Strong RON capability; remote session feedback excellent', 'ACTIVE', N'456 Pine Ln, Detroit, MI 48226', 0),
+    (16, 1016, '666-77-8888', N'Samantha Thomas', '1990-02-28', '/img/sthomas.jpg', '(555) 666-7788', 'samantha.t@mail.com', 'FULL_TIME', '2022-05-18', N'Strong RON capability; remote session feedback excellent', 'ACTIVE', N'456 Pine Ln, Detroit, MI 48226', 1),
     (17, 1017, '777-88-9999', N'Christopher Taylor', '1988-07-24', '/img/ctaylor.jpg', '(555) 777-8899', 'c.taylor@mail.com', 'FULL_TIME', '2020-10-10', N'High-volume appointment handler; commended for punctuality', 'ACTIVE', N'567 Maple St, Nashville, TN 37203', 0),
     (18, 1018, '888-99-0000', N'Elizabeth Moore', '1995-04-16', '/img/emoore.jpg', '(555) 888-9900', 'e.moore@mail.com', 'INDEPENDENT_CONTRACT', '2023-06-25', N'Personal leave', 'INACTIVE', N'678 Cedar Blvd, Houston, TX 77002', 0),
-    (19, 1019, '999-00-1111', N'Joshua Jackson', '1985-09-09', '/img/jjackson.jpg', '(555) 999-0011', 'j.jackson@mail.com', 'FULL_TIME', '2019-08-08', N'Senior-level experience; cross-state commission history', 'ACTIVE', N'789 Elm St, San Jose, CA 95113', 0),
-    (20, 1020, '000-11-2222', N'Lauren Martin', '1992-01-31', '/img/lmartin.jpg', '(555) 000-1122', 'lauren.m@mail.com', 'FULL_TIME', '2021-03-15', N'Cross-trained in multiple document types; consistent accuracy', 'ACTIVE', N'890 Birch Rd, Philadelphia, PA 19104', 0);
+    (19, 1019, '999-00-1111', N'Joshua Jackson', '1985-09-09', '/img/jjackson.jpg', '(555) 999-0011', 'j.jackson@mail.com', 'FULL_TIME', '2019-08-08', N'Senior-level experience; cross-state commission history', 'ACTIVE', N'789 Elm St, San Jose, CA 95113', 1),
+    (20, 1020, '000-11-2222', N'Lauren Martin', '1992-01-31', '/img/lmartin.jpg', '(555) 000-1122', 'lauren.m@mail.com', 'FULL_TIME', '2021-03-15', N'Cross-trained in multiple document types; consistent accuracy', 'ACTIVE', N'890 Birch Rd, Philadelphia, PA 19104', 1);
 SET IDENTITY_INSERT notaries OFF;
 END
 GO
@@ -373,26 +373,26 @@ SET IDENTITY_INSERT Notary_commissions ON;
 INSERT INTO Notary_commissions (id,notary_id,commission_state_id,commission_number,
     issue_date,expiration_date,status,is_renewal_applied,expected_renewal_date)
 VALUES
-    (1, 1, 5, '23456789', '2021-01-01 00:00:00', '2025-01-01 00:00:00', 'EXPIRED', 0, NULL),
+    (1, 1, 5, '23456789', '2021-01-01 00:00:00', '2025-01-01 00:00:00', 'EXPIRED', 0, '2024-11-01 00:00:00'),
     (2, 2, 43, '87654321', '2022-05-10 00:00:00', '2026-05-10 00:00:00', 'VALID', 1, '2026-04-01 00:00:00'),
-    (3, 3, 32, '99887766', '2019-03-15 00:00:00', '2023-03-15 00:00:00', 'EXPIRED', 0, NULL),
-    (4, 4, 9, 'GG123456', '2023-07-20 00:00:00', '2027-07-20 00:00:00', 'VALID', 0, NULL),
-    (5, 5, 47, 'WA556677', '2018-09-01 00:00:00', '2022-09-01 00:00:00', 'EXPIRED', 0, NULL),
-    (6, 6, 28, 'NV334455', '2024-01-10 00:00:00', '2028-01-10 00:00:00', 'VALID', 0, NULL),
-    (7, 7, 3, 'AZ778899', '2021-11-11 00:00:00', '2025-11-11 00:00:00', 'EXPIRED', 0, NULL),
+    (3, 3, 32, '99887766', '2019-03-15 00:00:00', '2023-03-15 00:00:00', 'EXPIRED', 0, '2023-01-15 00:00:00'),
+    (4, 4, 9, 'GG123456', '2023-07-20 00:00:00', '2027-07-20 00:00:00', 'VALID', 0, '2027-05-20 00:00:00'),
+    (5, 5, 47, 'WA556677', '2018-09-01 00:00:00', '2022-09-01 00:00:00', 'EXPIRED', 0, '2022-07-01 00:00:00'),
+    (6, 6, 28, 'NV334455', '2024-01-10 00:00:00', '2028-01-10 00:00:00', 'VALID', 0, '2027-11-10 00:00:00'),
+    (7, 7, 3, 'AZ778899', '2021-11-11 00:00:00', '2025-11-11 00:00:00', 'EXPIRED', 0, '2025-09-11 00:00:00'),
     (8, 8, 13, 'IL223344', '2023-02-02 00:00:00', '2027-02-02 00:00:00', 'VALID', 1, '2027-01-01 00:00:00'),
-    (9, 9, 35, 'OH998811', '2022-06-06 00:00:00', '2026-06-06 00:00:00', 'VALID', 0, NULL),
-    (10, 10, 22, 'MI445566', '2020-08-08 00:00:00', '2024-08-08 00:00:00', 'EXPIRED', 0, NULL),
+    (9, 9, 35, 'OH998811', '2022-06-06 00:00:00', '2026-06-06 00:00:00', 'VALID', 0, '2026-04-06 00:00:00'),
+    (10, 10, 22, 'MI445566', '2020-08-08 00:00:00', '2024-08-08 00:00:00', 'EXPIRED', 0, '2024-06-08 00:00:00'),
     (11, 11, 10, 'GA112233', '2023-12-12 00:00:00', '2027-12-12 00:00:00', 'VALID', 1, '2027-11-01 00:00:00'),
-    (12, 12, 33, 'NC667788', '2018-03-03 00:00:00', '2022-03-03 00:00:00', 'EXPIRED', 0, NULL),
-    (13, 13, 46, 'VA889900', '2024-04-04 00:00:00', '2028-04-04 00:00:00', 'VALID', 0, NULL),
-    (14, 14, 30, 'NJ556644', '2020-10-10 00:00:00', '2024-10-10 00:00:00', 'EXPIRED', 0, NULL),
-    (15, 15, 38, 'PA332211', '2019-07-07 00:00:00', '2023-07-07 00:00:00', 'EXPIRED', 0, NULL),
-    (16, 16, 21, 'MA909090', '2024-02-02 00:00:00', '2028-02-02 00:00:00', 'VALID', 0, NULL),
-    (17, 17, 6, 'CO121212', '2023-05-05 00:00:00', '2027-05-05 00:00:00', 'VALID', 0, NULL),
+    (12, 12, 33, 'NC667788', '2018-03-03 00:00:00', '2022-03-03 00:00:00', 'EXPIRED', 0, '2022-01-03 00:00:00'),
+    (13, 13, 46, 'VA889900', '2024-04-04 00:00:00', '2028-04-04 00:00:00', 'VALID', 0, '2028-02-04 00:00:00'),
+    (14, 14, 30, 'NJ556644', '2020-10-10 00:00:00', '2024-10-10 00:00:00', 'EXPIRED', 0, '2024-08-10 00:00:00'),
+    (15, 15, 38, 'PA332211', '2019-07-07 00:00:00', '2023-07-07 00:00:00', 'EXPIRED', 0, '2023-05-07 00:00:00'),
+    (16, 16, 21, 'MA909090', '2024-02-02 00:00:00', '2028-02-02 00:00:00', 'VALID', 0, '2027-12-02 00:00:00'),
+    (17, 17, 6, 'CO121212', '2023-05-05 00:00:00', '2027-05-05 00:00:00', 'VALID', 0, '2027-03-05 00:00:00'),
     (18, 18, 37, 'OR343434', '2022-09-09 00:00:00', '2026-09-09 00:00:00', 'VALID', 1, '2026-08-01 00:00:00'),
-    (19, 19, 23, 'MN565656', '2021-11-11 00:00:00', '2025-11-11 00:00:00', 'NOT_QUALIFIED', 0, NULL),
-    (20, 20, 44, 'UT787878', '2024-06-06 00:00:00', '2028-06-06 00:00:00', 'VALID', 0, NULL);
+    (19, 19, 23, 'MN565656', '2021-11-11 00:00:00', '2025-11-11 00:00:00', 'NOT_QUALIFIED', 0, '2025-09-11 00:00:00'),
+    (20, 20, 44, 'UT787878', '2024-06-06 00:00:00', '2028-06-06 00:00:00', 'VALID', 0, '2028-04-06 00:00:00');
 SET IDENTITY_INSERT Notary_commissions OFF;
 END
 GO
@@ -509,29 +509,58 @@ GO
 IF NOT EXISTS (SELECT 1 FROM notary_availabilities)
 BEGIN
 SET IDENTITY_INSERT notary_availabilities ON;
-INSERT INTO notary_availabilities (id,notary_id,working_days_per_week,start_time,end_time,fixed_days_off)
+INSERT INTO notary_availabilities (
+    id,notary_id,working_days_per_week,start_time,end_time,fixed_days_off,
+    federal_holiday_mode,state_holiday_mode,state_holiday_state_id
+)
 VALUES
-    (1, 1, 5, '08:00:00', '17:00:00', 'sat,sun'),
-    (2, 2, 6, '09:00:00', '18:00:00', 'sun'),
-    (3, 3, 5, '08:30:00', '17:30:00', 'sat'),
-    (4, 4, 6, '10:00:00', '19:00:00', 'sun'),
-    (5, 5, 5, '08:00:00', '16:00:00', 'sat,sun'),
-    (6, 6, 6, '09:00:00', '15:00:00', 'sun'),
-    (7, 7, 5, '07:00:00', '15:00:00', 'sat,sun'),
-    (8, 8, 6, '08:00:00', '16:00:00', 'sun'),
-    (9, 9, 5, '10:00:00', '18:00:00', 'sat'),
-    (10, 10, 6, '08:00:00', '17:00:00', 'sun'),
-    (11, 11, 5, '09:00:00', '18:00:00', 'sat,sun'),
-    (12, 12, 6, '08:00:00', '14:00:00', 'sun'),
-    (13, 13, 5, '10:00:00', '18:00:00', 'sat'),
-    (14, 14, 6, '07:00:00', '15:00:00', 'sun'),
-    (15, 15, 5, '08:30:00', '17:30:00', 'sat,sun'),
-    (16, 16, 6, '09:00:00', '18:00:00', 'sun'),
-    (17, 17, 5, '07:00:00', '15:00:00', 'sat'),
-    (18, 18, 6, '10:00:00', '16:00:00', 'sun'),
-    (19, 19, 5, '08:00:00', '17:00:00', 'sat,sun'),
-    (20, 20, 6, '09:00:00', '18:00:00', 'sun');
+    (1, 1, 5, '08:00:00', '17:00:00', 'sat,sun', 'SELECTED', 'NONE', NULL),
+    (2, 2, 6, '09:00:00', '18:00:00', 'sun', 'NONE', 'ALL', 43),
+    (3, 3, 5, '08:30:00', '17:30:00', 'sat', 'ALL', 'NONE', NULL),
+    (4, 4, 6, '10:00:00', '19:00:00', 'sun', 'NONE', 'SELECTED', 5),
+    (5, 5, 5, '08:00:00', '16:00:00', 'sat,sun', 'SELECTED', 'ALL', 43),
+    (6, 6, 6, '09:00:00', '15:00:00', 'sun', 'NONE', 'ALL', 43),
+    (7, 7, 5, '07:00:00', '15:00:00', 'sat,sun', 'NONE', 'NONE', NULL),
+    (8, 8, 6, '08:00:00', '16:00:00', 'sun', 'ALL', 'NONE', NULL),
+    (9, 9, 5, '10:00:00', '18:00:00', 'sat', 'SELECTED', 'ALL', 9),
+    (10, 10, 6, '08:00:00', '17:00:00', 'sun', 'ALL', 'SELECTED', 5),
+    (11, 11, 5, '09:00:00', '18:00:00', 'sat,sun', 'NONE', 'NONE', NULL),
+    (12, 12, 6, '08:00:00', '14:00:00', 'sun', 'SELECTED', 'NONE', NULL),
+    (13, 13, 5, '10:00:00', '18:00:00', 'sat', 'NONE', 'ALL', 9),
+    (14, 14, 6, '07:00:00', '15:00:00', 'sun', 'NONE', 'NONE', NULL),
+    (15, 15, 5, '08:30:00', '17:30:00', 'sat,sun', 'NONE', 'NONE', NULL),
+    (16, 16, 6, '09:00:00', '18:00:00', 'sun', 'ALL', 'NONE', NULL),
+    (17, 17, 5, '07:00:00', '15:00:00', 'sat', 'SELECTED', 'NONE', NULL),
+    (18, 18, 6, '10:00:00', '16:00:00', 'sun', 'NONE', 'ALL', 47),
+    (19, 19, 5, '08:00:00', '17:00:00', 'sat,sun', 'ALL', 'SELECTED', 47),
+    (20, 20, 6, '09:00:00', '18:00:00', 'sun', 'SELECTED', 'NONE', NULL);
 SET IDENTITY_INSERT notary_availabilities OFF;
+END
+GO
+
+-- Seed: notary_selected_holidays
+IF NOT EXISTS (SELECT 1 FROM notary_selected_holidays)
+BEGIN
+INSERT INTO notary_selected_holidays (notary_id, holiday_id)
+VALUES
+    (1, 1),
+    (1, 10),
+    (4, 5),
+    (4, 10),
+    (5, 4),
+    (5, 9),
+    (9, 5),
+    (9, 8),
+    (10, 5),
+    (10, 10),
+    (12, 1),
+    (12, 9),
+    (17, 6),
+    (17, 10),
+    (19, 11),
+    (19, 14),
+    (20, 4),
+    (20, 10);
 END
 GO
 
