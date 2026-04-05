@@ -43,6 +43,7 @@ const initDb = async () => {
     const scriptPaths = [
       path.join(__dirname, '../../database/init.sql'),
       path.join(__dirname, '../../database/auth.sql'),
+      path.join(__dirname, '../../database/crm.sql'),
     ];
 
     for (const scriptPath of scriptPaths) {
