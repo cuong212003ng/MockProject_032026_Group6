@@ -61,6 +61,19 @@ const getNotaryById = async (req, res) => {
   }
 };
 
+// ─── 3.5. DELETE /api/v1/notaries/:id ─────────────────────────────────────────
+const deleteNotary = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await notaryModel.softDeleteNotary(id);
+    if (!result) return sendError(res, `Notary #${id} not found`, 404);
+    return sendSuccess(res, result, 'Notary deleted successfully');
+  } catch (err) {
+    console.error('[deleteNotary]', err.message);
+    return sendError(res, 'Failed to delete notary', 500);
+  }
+};
+
 // ─── 4. PATCH /api/v1/notaries/:id/bio ───────────────────────────────────────
 const updateBio = async (req, res) => {
   try {
@@ -243,7 +256,7 @@ const getAvailability = async (req, res) => {
   }
 };
 
-// ─── 16. POST /api/v1/notaries/:id/availability ──────────────────────────────
+// ─── 16. PUT /api/v1/notaries/:id/availability ──────────────────────────────
 const setAvailability = async (req, res) => {
   try {
     const { id } = req.params;
@@ -487,6 +500,7 @@ module.exports = {
   getNotaryList,
   createNotary,
   getNotaryById,
+  deleteNotary,
   updateBio,
   toggleStatus,
   getOverview,

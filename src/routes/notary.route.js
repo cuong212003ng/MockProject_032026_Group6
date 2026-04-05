@@ -28,6 +28,7 @@ const {
   validateCommissionListQuery,
   validateCommissionPayload,
   validateCommissionUpdatePayload,
+  validateAvailability,
 } = require('../middlewares/validate.middleware');
 
 // router.use(authenticate); // TODO: bật lại khi deploy
@@ -158,6 +159,50 @@ router.post('/', authorize('ADMIN'), notaryController.createNotary);
  *         description: Not found
  */
 router.get('/:id', authorize('ADMIN'), validateNotaryIdParam, notaryController.getNotaryById);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}:
+ *   delete:
+ *     summary: Soft delete a notary profile
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Notary soft deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Notary deleted successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     status:
+ *                       type: string
+ *                       example: DELETED
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Notary not found
+ */
+router.delete('/:id', authorize('ADMIN'), validateNotaryIdParam, notaryController.deleteNotary);
 
 /**
  * @swagger
@@ -693,7 +738,7 @@ router.get(
 /**
  * @swagger
  * /api/v1/notaries/{id}/availability:
- *   post:
+ *   put:
  *     summary: Create or update notary availability (upsert)
  *     tags: [Notaries]
  *     security:
@@ -720,20 +765,121 @@ router.get(
  *                 example: '17:00'
  *               fixed_days_off:
  *                 type: string
- *                 example: 'Saturday,Sunday'
+ *                 example: 'sat,sun'
  *               blackout_dates:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: date
+ *               work_holiday:
+ *                 type: boolean
+ *               holiday_preferences:
+ *                 type: object
+ *                 properties:
+ *                   federal:
+ *                     type: object
+ *                     properties:
+ *                       mode:
+ *                         type: string
+ *                         enum: ['ALL', 'SELECTED', 'NONE']
+ *                       selected_holiday_ids:
+ *                         type: array
+ *                         items:
+ *                           type: integer
+ *                   state:
+ *                     type: object
+ *                     properties:
+ *                       mode:
+ *                         type: string
+ *                         enum: ['ALL', 'SELECTED', 'NONE']
+ *                       state_id:
+ *                         type: integer
+ *                       selected_holiday_ids:
+ *                         type: array
+ *                         items:
+ *                           type: integer
  *     responses:
  *       200:
  *         description: Availability set
  */
-router.post(
+router.put(
   '/:id/availability',
   authorize('ADMIN'),
-  validateNotaryIdParam,
+  validateAvailability,
+  notaryController.setAvailability,
+);
+
+/**
+ * @swagger
+ * /api/v1/notaries/{id}/availability:
+ *   put:
+ *     summary: Update notary availability (upsert)
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               working_days_per_week:
+ *                 type: integer
+ *               start_time:
+ *                 type: string
+ *                 example: '08:00'
+ *               end_time:
+ *                 type: string
+ *                 example: '17:00'
+ *               fixed_days_off:
+ *                 type: string
+ *                 example: 'sat,sun'
+ *               blackout_dates:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: date
+ *               work_holiday:
+ *                 type: boolean
+ *               holiday_preferences:
+ *                 type: object
+ *                 properties:
+ *                   federal:
+ *                     type: object
+ *                     properties:
+ *                       mode:
+ *                         type: string
+ *                         enum: ['ALL', 'SELECTED', 'NONE']
+ *                       selected_holiday_ids:
+ *                         type: array
+ *                         items:
+ *                           type: integer
+ *                   state:
+ *                     type: object
+ *                     properties:
+ *                       mode:
+ *                         type: string
+ *                         enum: ['ALL', 'SELECTED', 'NONE']
+ *                       state_id:
+ *                         type: integer
+ *                       selected_holiday_ids:
+ *                         type: array
+ *                         items:
+ *                           type: integer
+ *     responses:
+ *       200:
+ *         description: Availability set
+ */
+router.put(
+  '/:id/availability',
+  authorize('ADMIN'),
+  validateAvailability,
   notaryController.setAvailability,
 );
 
