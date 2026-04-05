@@ -35,10 +35,10 @@ const updateBio = async ({ notaryId, changes, actorId }) => {
   };
 };
 
-const toggleStatus = async ({ notaryId, isActive, actorId }) => {
+const toggleStatus = async ({ notaryId, status, actorId }) => {
   await getNotaryOrThrow(notaryId);
 
-  const result = await notaryModel.toggleStatus(notaryId, isActive, actorId);
+  const result = await notaryModel.toggleStatus(notaryId, status, actorId);
   if (!result) {
     throw new AppError(`Notary #${notaryId} not found`, 404);
   }
@@ -62,6 +62,14 @@ const toggleStatus = async ({ notaryId, isActive, actorId }) => {
 // ============================================================================
 // dev-trongtuan (SC003 & SC004)
 // ============================================================================
+const getNotaryProfile = async (notaryId) => {
+  const notary = await getNotaryOrThrow(notaryId);
+  return {
+    ...notary,
+    rating: 4.8,
+  };
+};
+
 const updatePersonalInfo = async ({ notaryId, changes, actorId }) => {
   await getNotaryOrThrow(notaryId);
 
@@ -86,9 +94,53 @@ const updatePersonalInfo = async ({ notaryId, changes, actorId }) => {
   };
 };
 
+const getCapabilities = async (notaryId) => {
+  await getNotaryOrThrow(notaryId);
+
+  const capabilityFlags = await notaryModel.getCapabilityFlags(notaryId);
+  const serviceAreas = await notaryModel.getNotaryServiceAreas(notaryId);
+
+  const stateCodes = serviceAreas.map((area) => area.state_code).filter(Boolean);
+
+  return {
+    mobile: capabilityFlags?.mobile ?? false,
+    RON: capabilityFlags?.RON ?? false,
+    loan_signing: capabilityFlags?.loan_signing ?? false,
+    apostille_related_support: capabilityFlags?.apostille_related_support ?? false,
+    max_distance: capabilityFlags?.max_distance ?? null,
+    service_areas: serviceAreas,
+    service_states: stateCodes.join(', '),
+  };
+};
+
+const getPerformance = async (notaryId) => {
+  await getNotaryOrThrow(notaryId);
+
+  const jobs = await notaryModel.getJobStatuses(notaryId);
+  const totalJobs = jobs.length;
+  const completedJobs = jobs.filter(
+    (item) => String(item.status).toUpperCase() === 'COMPLETED',
+  ).length;
+  const cancelledJobs = jobs.filter(
+    (item) => String(item.status).toUpperCase() === 'CANCELLED',
+  ).length;
+  const completionRate =
+    totalJobs === 0 ? 0 : Number(((completedJobs / totalJobs) * 100).toFixed(2));
+
+  return {
+    total_jobs: totalJobs,
+    completed_jobs: completedJobs,
+    cancelled_jobs: cancelledJobs,
+    completion_rate: completionRate,
+  };
+};
+
 module.exports = {
   getNotaryOrThrow,
+  getNotaryProfile,
   updateBio,
   toggleStatus,
   updatePersonalInfo,
+  getCapabilities,
+  getPerformance,
 };

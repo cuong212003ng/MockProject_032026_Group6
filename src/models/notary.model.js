@@ -211,21 +211,30 @@ const updateBio = async (id, data) => {
 };
 
 // ─── 5. Toggle Status ────────────────────────────────────────────────────────
-const toggleStatus = async (id, isActive, changedBy) => {
+const toggleStatus = async (id, status, changedBy) => {
   const previous = await findById(id);
   if (!previous) return null;
 
-  const newStatus = isActive ? 'ACTIVE' : 'INACTIVE';
+  const normalizedStatus = String(status || '')
+    .trim()
+    .toUpperCase();
+  const validStatuses = ['ACTIVE', 'INACTIVE'];
+  if (!validStatuses.includes(normalizedStatus)) {
+    throw new Error('Invalid status value; expected ACTIVE or INACTIVE');
+  }
 
-  await query('UPDATE notaries SET status = @status WHERE id = @id', { id, status: newStatus });
+  await query('UPDATE notaries SET status = @status WHERE id = @id', {
+    id,
+    status: normalizedStatus,
+  });
 
   await query(
     `INSERT INTO Notary_status_history (notary_id, status, reason, effective_date, created_by)
      VALUES (@notaryId, @status, @reason, GETDATE(), @createdBy)`,
     {
       notaryId: id,
-      status: newStatus,
-      reason: isActive ? 'Activated by admin' : 'Deactivated by admin',
+      status: normalizedStatus,
+      reason: normalizedStatus === 'ACTIVE' ? 'Activated by admin' : 'Deactivated by admin',
       createdBy: changedBy || null,
     },
   );
@@ -234,9 +243,9 @@ const toggleStatus = async (id, isActive, changedBy) => {
 
   return {
     id,
-    status: newStatus,
+    status: normalizedStatus,
     previous: { status: previous.status },
-    current: { status: current?.status || newStatus },
+    current: { status: current?.status || normalizedStatus },
   };
 };
 
@@ -566,6 +575,41 @@ const getCapabilities = async (notaryId) => {
     service_areas: areaResult.recordset,
     languages: langResult.recordset,
   };
+};
+
+const getCapabilityFlags = async (notaryId) => {
+  const result = await query(
+    `SELECT mobile, RON, loan_signing, apostille_related_support, max_distance
+     FROM notary_capabilities
+     WHERE notary_id = @notaryId`,
+    { notaryId },
+  );
+
+  return result.recordset[0] || null;
+};
+
+const getNotaryServiceAreas = async (notaryId) => {
+  const result = await query(
+    `SELECT nsa.id, nsa.county_name, s.state_code, s.state_name
+     FROM notary_service_areas nsa
+     INNER JOIN States s ON s.id = nsa.state_id
+     WHERE nsa.notary_id = @notaryId`,
+    { notaryId },
+  );
+
+  return result.recordset;
+};
+
+const getJobStatuses = async (notaryId) => {
+  const result = await query(
+    `SELECT j.Status AS status
+     FROM [job assignments] ja
+     INNER JOIN Job j ON j.id = ja.job_id
+     WHERE ja.notary_id = @notaryId`,
+    { notaryId },
+  );
+
+  return result.recordset;
 };
 
 // ─── 14. Cập nhật Capabilities ───────────────────────────────────────────────
@@ -1656,6 +1700,9 @@ module.exports = {
   getIncidents,
   createIncident,
   computeRiskStatus,
+  getCapabilityFlags,
+  getNotaryServiceAreas,
+  getJobStatuses,
 
   // ─── SC003: Personal Info (dev-trongtuan) ───
   getPersonalInfoById,

@@ -252,7 +252,11 @@ const validateBioUpdate = [
 
 const validateToggleStatus = [
   param('id').isInt({ min: 1 }).withMessage('id must be a positive integer'),
-  body('is_active').isBoolean().withMessage('is_active must be a boolean'),
+  body('status')
+    .isString()
+    .trim()
+    .isIn(['ACTIVE', 'INACTIVE'])
+    .withMessage('status must be either ACTIVE or INACTIVE'),
   handleValidation,
 ];
 
