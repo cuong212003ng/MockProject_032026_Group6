@@ -226,6 +226,45 @@ test.after(() => {
   fs.rmSync(process.env.UPLOAD_DIR, { recursive: true, force: true });
 });
 
+test('GET /api/v1/notaries forwards state query to findAll', async (t) => {
+  const originalFindAll = notaryModel.findAll;
+  let capturedFilters = null;
+
+  notaryModel.findAll = async (filters) => {
+    capturedFilters = filters;
+    return [
+      {
+        id: 123,
+        full_name: 'Test Notary',
+        email: 'test@example.com',
+        phone: '1234567890',
+        photo_url: null,
+        status: 'ACTIVE',
+        employment_type: 'CONTRACTOR',
+        mobile: 1,
+        RON: 0,
+        loan_signing: 0,
+        apostille_related_support: 0,
+        max_distance: null,
+        residential_address: '123 Main St, CA',
+        states: 'CA',
+      },
+    ];
+  };
+
+  const response = await request(app)
+    .get('/api/v1/notaries?state=CA')
+    .set('Authorization', `Bearer ${adminToken}`);
+
+  notaryModel.findAll = originalFindAll;
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.status, 'success');
+  assert.equal(capturedFilters.state, 'CA');
+  assert.ok(Array.isArray(response.body.data));
+  assert.equal(response.body.data[0].states, 'CA');
+});
+
 test('Notary profile endpoints enforce auth, RBAC, wrapper, and upload behavior', async (t) => {
   resetStubs();
   fs.rmSync(process.env.UPLOAD_DIR, { recursive: true, force: true });
@@ -598,7 +637,7 @@ test('Notary DELETE + Availability endpoints integration tests', async (t) => {
 
   await t.test('DELETE /api/v1/notaries/:id (ADMIN happy path)', async () => {
     notaryModel.findById = async (id) => ({ id: Number(id), status: 'ACTIVE' });
-    notaryModel.softDeleteNotary = async (id) => ({ id: Number(id), status: 'INACTIVE' });
+    notaryModel.softDeleteNotary = async (id) => ({ id: Number(id), status: 'DELETED' });
 
     const response = await request(app)
       .delete('/api/v1/notaries/1')
@@ -608,7 +647,7 @@ test('Notary DELETE + Availability endpoints integration tests', async (t) => {
     assert.equal(response.body.success, true);
     assert.equal(response.body.status, 'success');
     assert.ok(response.body.message.toLowerCase().includes('delete'));
-    assert.deepEqual(response.body.data, { id: 1, status: 'INACTIVE' });
+    assert.deepEqual(response.body.data, { id: 1, status: 'DELETED' });
   });
 
   await t.test('DELETE /api/v1/notaries/:id (USER forbidden 403)', async () => {

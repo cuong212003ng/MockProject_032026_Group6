@@ -162,6 +162,50 @@ router.get('/:id', authorize('ADMIN'), validateNotaryIdParam, notaryController.g
 
 /**
  * @swagger
+ * /api/v1/notaries/{id}:
+ *   delete:
+ *     summary: Soft delete a notary profile
+ *     tags: [Notaries]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Notary soft deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Notary deleted successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     status:
+ *                       type: string
+ *                       example: DELETED
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Notary not found
+ */
+router.delete('/:id', authorize('ADMIN'), validateNotaryIdParam, notaryController.deleteNotary);
+
+/**
+ * @swagger
  * /api/v1/notaries/{id}/bio:
  *   patch:
  *     summary: Update notary bio (phone, email, address, photo, notes)

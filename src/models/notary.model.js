@@ -69,11 +69,16 @@ const findAll = async ({ status, state, capability, page = 1, limit = 10 }) => {
       nc.RON,
       nc.loan_signing,
       nc.apostille_related_support,
-      nc.max_distance
+      nc.max_distance,
+      n.residential_address,
+      (
+        SELECT STRING_AGG(s.state_code, ', ')
+        FROM notary_service_areas nsa
+        INNER JOIN States s ON s.id = nsa.state_id
+        WHERE nsa.notary_id = n.id
+      ) AS states
     FROM notaries n
     LEFT JOIN notary_capabilities nc ON nc.notary_id = n.id
-    LEFT JOIN notary_service_areas nsa ON nsa.notary_id = n.id
-    LEFT JOIN States s ON s.id = nsa.state_id
     WHERE 1 = 1
   `;
   const params = { limit: parseInt(limit), offset };
@@ -83,7 +88,8 @@ const findAll = async ({ status, state, capability, page = 1, limit = 10 }) => {
     params.status = status;
   }
   if (state) {
-    baseQuery += ' AND (s.state_code = @state OR s.state_name = @state)';
+    baseQuery +=
+      ' AND EXISTS (SELECT 1 FROM notary_service_areas nsa INNER JOIN States s ON s.id = nsa.state_id WHERE nsa.notary_id = n.id AND (s.state_code = @state OR s.state_name = @state))';
     params.state = state;
   }
   if (capability) {
@@ -1604,6 +1610,14 @@ const deleteCommissionRecord = async (commId, notaryId, txQuery = query) => {
   });
 };
 
+const softDeleteNotary = async (id) => {
+  const result = await query('UPDATE notaries SET status = @status WHERE id = @id', {
+    id,
+    status: 'DELETED',
+  });
+  return result.rowsAffected[0] > 0 ? { id, status: 'DELETED' } : null;
+};
+
 module.exports = {
   findAll,
   findById,
@@ -1655,4 +1669,5 @@ module.exports = {
   insertAuthorityScope,
   deleteAuthorityScopes,
   deleteCommissionRecord,
+  softDeleteNotary,
 };
