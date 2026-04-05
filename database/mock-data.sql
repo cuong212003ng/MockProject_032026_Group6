@@ -1,12 +1,9 @@
 ﻿-- ============================================================
 --  notarial_db mock data seed
---  Generated from approved AI mock dataset on 2026-04-05
 --
 --  Purpose:
 --  - keep existing schema scripts in database/init.sql and database/auth.sql
 --  - replace partial sample rows in notarial_db with the full mock dataset
---  - avoid large edits to existing bootstrap files to reduce merge conflicts
---  - this script is intentionally destructive for mockable notarial tables
 --
 --  Run order:
 --  1. database/init.sql
@@ -18,7 +15,6 @@
 USE notarial_db;
 GO
 
--- Compatibility fixes for fields/tables already used by the app
 IF COL_LENGTH('notaries', 'work_holiday') IS NULL
 BEGIN
     ALTER TABLE notaries ADD work_holiday BIT NOT NULL DEFAULT 0;
@@ -62,7 +58,6 @@ BEGIN
 END
 GO
 
--- Reset mockable data in FK-safe order so the full dataset can be re-imported.
 IF OBJECT_ID('notifications', 'U') IS NOT NULL DELETE FROM notifications;
 IF OBJECT_ID('job_status_logs', 'U') IS NOT NULL DELETE FROM job_status_logs;
 IF OBJECT_ID('[job assignments]', 'U') IS NOT NULL DELETE FROM [job assignments];
@@ -88,7 +83,7 @@ IF OBJECT_ID('Languages', 'U') IS NOT NULL DELETE FROM Languages;
 IF OBJECT_ID('States', 'U') IS NOT NULL DELETE FROM States;
 GO
 
--- â”€â”€ Seed: States â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: States
 IF NOT EXISTS (SELECT 1 FROM States)
 BEGIN
 SET IDENTITY_INSERT States ON;
@@ -147,7 +142,7 @@ SET IDENTITY_INSERT States OFF;
 END
 GO
 
--- â”€â”€ Seed: Languages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Languages
 IF NOT EXISTS (SELECT 1 FROM Languages)
 BEGIN
 SET IDENTITY_INSERT Languages ON;
@@ -340,7 +335,7 @@ SET IDENTITY_INSERT Languages OFF;
 END
 GO
 
--- â”€â”€ Seed: notaries â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: notaries
 IF NOT EXISTS (SELECT 1 FROM notaries)
 BEGIN
 SET IDENTITY_INSERT notaries ON;
@@ -371,7 +366,7 @@ SET IDENTITY_INSERT notaries OFF;
 END
 GO
 
--- â”€â”€ Seed: Notary_commissions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Notary_commissions
 IF NOT EXISTS (SELECT 1 FROM Notary_commissions)
 BEGIN
 SET IDENTITY_INSERT Notary_commissions ON;
@@ -402,7 +397,7 @@ SET IDENTITY_INSERT Notary_commissions OFF;
 END
 GO
 
--- â”€â”€ Seed: Authority_scope â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Authority_scope
 IF NOT EXISTS (SELECT 1 FROM Authority_scope)
 BEGIN
 SET IDENTITY_INSERT Authority_scope ON;
@@ -457,7 +452,7 @@ SET IDENTITY_INSERT Authority_scope OFF;
 END
 GO
 
--- â”€â”€ Seed: notary_capabilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: notary_capabilities
 IF NOT EXISTS (SELECT 1 FROM notary_capabilities)
 BEGIN
 SET IDENTITY_INSERT notary_capabilities ON;
@@ -487,7 +482,7 @@ SET IDENTITY_INSERT notary_capabilities OFF;
 END
 GO
 
--- â”€â”€ Seed: Ron_technologies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Ron_technologies
 IF NOT EXISTS (SELECT 1 FROM Ron_technologies)
 BEGIN
 SET IDENTITY_INSERT Ron_technologies ON;
@@ -510,7 +505,7 @@ SET IDENTITY_INSERT Ron_technologies OFF;
 END
 GO
 
--- â”€â”€ Seed: notary_availabilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: notary_availabilities
 IF NOT EXISTS (SELECT 1 FROM notary_availabilities)
 BEGIN
 SET IDENTITY_INSERT notary_availabilities ON;
@@ -540,7 +535,7 @@ SET IDENTITY_INSERT notary_availabilities OFF;
 END
 GO
 
--- â”€â”€ Seed: notary_service_areas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: notary_service_areas
 IF NOT EXISTS (SELECT 1 FROM notary_service_areas)
 BEGIN
 SET IDENTITY_INSERT notary_service_areas ON;
@@ -570,7 +565,7 @@ SET IDENTITY_INSERT notary_service_areas OFF;
 END
 GO
 
--- â”€â”€ Seed: Notary_documents â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Notary_documents
 IF NOT EXISTS (SELECT 1 FROM Notary_documents)
 BEGIN
 SET IDENTITY_INSERT Notary_documents ON;
@@ -600,7 +595,7 @@ SET IDENTITY_INSERT Notary_documents OFF;
 END
 GO
 
--- â”€â”€ Seed: Notary_insurances â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Notary_insurances
 IF NOT EXISTS (SELECT 1 FROM Notary_insurances)
 BEGIN
 SET IDENTITY_INSERT Notary_insurances ON;
@@ -630,7 +625,7 @@ SET IDENTITY_INSERT Notary_insurances OFF;
 END
 GO
 
--- â”€â”€ Seed: Notary_bonds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Notary_bonds
 IF NOT EXISTS (SELECT 1 FROM Notary_bonds)
 BEGIN
 SET IDENTITY_INSERT Notary_bonds ON;
@@ -660,7 +655,7 @@ SET IDENTITY_INSERT Notary_bonds OFF;
 END
 GO
 
--- â”€â”€ Seed: Notary_audit_logs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Notary_audit_logs
 IF NOT EXISTS (SELECT 1 FROM Notary_audit_logs)
 BEGIN
 SET IDENTITY_INSERT Notary_audit_logs ON;
@@ -690,7 +685,7 @@ SET IDENTITY_INSERT Notary_audit_logs OFF;
 END
 GO
 
--- â”€â”€ Seed: Notary_incidents â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Notary_incidents
 IF NOT EXISTS (SELECT 1 FROM Notary_incidents)
 BEGIN
 SET IDENTITY_INSERT Notary_incidents ON;
@@ -720,7 +715,7 @@ SET IDENTITY_INSERT Notary_incidents OFF;
 END
 GO
 
--- â”€â”€ Seed: Notary_status_history â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Notary_status_history
 IF NOT EXISTS (SELECT 1 FROM Notary_status_history)
 BEGIN
 SET IDENTITY_INSERT Notary_status_history ON;
@@ -750,7 +745,7 @@ SET IDENTITY_INSERT Notary_status_history OFF;
 END
 GO
 
--- â”€â”€ Seed: Holidays â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Holidays
 IF NOT EXISTS (SELECT 1 FROM Holidays)
 BEGIN
 SET IDENTITY_INSERT Holidays ON;
@@ -774,7 +769,7 @@ SET IDENTITY_INSERT Holidays OFF;
 END
 GO
 
--- â”€â”€ Seed: Job â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: Job
 IF NOT EXISTS (SELECT 1 FROM Job)
 BEGIN
 SET IDENTITY_INSERT Job ON;
@@ -789,7 +784,7 @@ SET IDENTITY_INSERT Job OFF;
 END
 GO
 
--- â”€â”€ Seed: job assignments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: job assignments
 IF NOT EXISTS (SELECT 1 FROM [job assignments])
 BEGIN
 SET IDENTITY_INSERT [job assignments] ON;
@@ -801,7 +796,7 @@ SET IDENTITY_INSERT [job assignments] OFF;
 END
 GO
 
--- â”€â”€ Seed: job_status_logs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: job_status_logs
 IF NOT EXISTS (SELECT 1 FROM job_status_logs)
 BEGIN
 INSERT INTO job_status_logs (job_id,status,time_stamps,delay,exception_flags,note)
@@ -816,7 +811,7 @@ VALUES
 END
 GO
 
--- â”€â”€ Seed: events â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: events
 IF NOT EXISTS (SELECT 1 FROM events)
 BEGIN
 INSERT INTO events (event_id, event_name)
@@ -827,7 +822,7 @@ VALUES
 END
 GO
 
--- â”€â”€ Seed: notifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- Seed: notifications
 IF NOT EXISTS (SELECT 1 FROM notifications)
 BEGIN
 INSERT INTO notifications (event_id,job_id,sms,email,app,delay,time_stamp)
