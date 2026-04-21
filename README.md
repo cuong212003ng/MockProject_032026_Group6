@@ -44,9 +44,9 @@ In addition, the module includes shared cross-cutting concerns:
   - `SC_005_Bond&Insurance`
   - `SC_006_Service_Capability`
 - `Vu Trong Tuan`
-  - `SC_007_Document`
   - API Docs / Swagger / response wrapper
 - `Ngo Van Duong`
+  - `SC_007_Document`
   - `SC_008_Audit`
   - `Security & Authorization`
 
